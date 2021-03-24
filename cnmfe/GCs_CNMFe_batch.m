@@ -10,4 +10,5 @@ for i=1:size(parin,1)
         [~,m,~] = fileparts(m);
         fprintf(['fail to process ',m,'\n'])
     end
+    clearvars -except parin i
 end

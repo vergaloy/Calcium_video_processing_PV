@@ -196,7 +196,7 @@ end
 %   implay(cat(2,mat2gray(neuron.PNR_all),mat2gray(neuron.Cn_all)),5);
 
 %% to visualize all temporal traces
-%   strips(neuron.C_raw');
+%   figure;strips(neuron.C_raw');
 %   figure;stackedplot(neuron.C_raw');
 %   view_traces(neuron);
 

@@ -1,11 +1,11 @@
-function justdeconv(neuron,deconv_method,type)
+function justdeconv(neuron,deconv_method,type,smin)
 %neuron=justdeconv(neuron,'thresholded','ar2');
 
 %'foopsi', 'constrained', 'thresholded'
 neuron.options.deconv_options.method =deconv_method;
 neuron.options.deconv_options.type =type;
-neuron.options.deconv_options.smin=0;
-neuron.options.smin=0;
+neuron.options.deconv_options.smin=smin;
+neuron.options.smin=smin;
 neuron.C_raw(~isfinite(neuron.C_raw))=0;
 deconvTemporal(neuron, 1);
 
