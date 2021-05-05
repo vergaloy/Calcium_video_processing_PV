@@ -1,14 +1,11 @@
 function align_sessions_PV()
 
-myFolder=uigetdir;
-filePattern = fullfile(myFolder, '*mc.h5');
-theFiles = dir(filePattern);
+theFiles = uipickfiles('FilterSpec','*.h5');
 Vid=cell(1,size(theFiles,1));
 Cn=cell(1,size(theFiles,1));
 
-for i=1:size(theFiles,1)
-    baseFileName = theFiles(i).name;
-    fullFileName = fullfile(myFolder, baseFileName);
+for i=1:size(theFiles,2)
+    fullFileName = theFiles{i};
     fprintf(1, 'Now reading %s\n', fullFileName);
     temp=h5read(fullFileName,'/Object');
     Vid{i}=temp;

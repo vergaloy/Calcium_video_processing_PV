@@ -75,8 +75,9 @@ clear;
 gcp;
 
 name = '/Users/epnevmatikakis/Documents/Ca_datasets/Miniscope/msCam13.avi';
+name = V;
 MC_1p = MotionCorrection(name);
-MC_1p.HPF(7,17);                                        % high pass filter 
+MC_1p.HPF(4,12);                                        % high pass filter 
 options_1p = NoRMCorreSetParms('d1',MC_1p.dims(1),'d2',MC_1p.dims(2),'bin_width',50,'max_shift',20,'iter',1,'correct_bidir',false);
 MC_1p.motionCorrectParallel(options_1p);                % correct the high pass filtered file
 MC_1p.M = MC_1p.applyShifts(MC_1p.file_orig);           % apply shifts to the original file

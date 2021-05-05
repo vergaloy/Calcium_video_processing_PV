@@ -16,7 +16,7 @@ end
 
 %addpath(genpath('../../NoRMCorre'));
 Yf = read_file(name);
-Yf = single(Yf);
+Yf = double(Yf);
 [d1,d2,T] = size(Yf);
 
 %% perform some sort of deblurring/high pass filtering
