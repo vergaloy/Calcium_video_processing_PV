@@ -307,7 +307,7 @@ default_kernel = obj.kernel;
 
 results = cell(nr_patch*nc_patch, 1);
 if use_parallel
-    parfor mpatch=1:(nr_patch*nc_patch)
+    parfor mpatch=1:(nr_patch*nc_patch) % add parfor PV
         % get the indices corresponding to the selected patch
         tmp_patch = patch_pos{mpatch};
         tmp_block = block_pos{mpatch};
@@ -390,9 +390,9 @@ else
         Ypatch = double(reshape(Ypatch, [], T));
         if nk>1
             Ypatch_dt = detrend_data(Ypatch, nk); % detrend data
-            [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope(Ypatch_dt, K, tmp_options, [], tmp_save_avi);
+            [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope_PV(Ypatch_dt, K, tmp_options, [], tmp_save_avi);
         else
-            [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope(Ypatch, K, tmp_options, [], tmp_save_avi);
+            [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = ggreedyROI_endoscope_PV(Ypatch_dt, K, tmp_options, [], tmp_save_avi);
         end
         
         % put everthing into one struct variable

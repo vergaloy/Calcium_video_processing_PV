@@ -305,14 +305,14 @@ classdef Sources2D < handle
                 if nbatches<=1
                     frame_range_t = [1, T];
                 else
-                    frame_range_t = round(linspace(1, T, nbatches+1));
+                    frame_range_t = cumsum([0,obj.frame_range]);
                 end
-                nbatches = length(frame_range_t) -2;  %Modification done by PV
+                nbatches = length(frame_range_t) -1;  %Modification done by PV
                 
                 for n=1:nbatches
                     k_batch = k_batch +1;
                     tmp_neuron = neuron.copy();
-                    tmp_neuron.frame_range = [frame_range_t(n),frame_range_t(n+2)];%Modification done by PV
+                    tmp_neuron.frame_range = [frame_range_t(n)+1,frame_range_t(n+1)];%Modification done by PV
                     batch_i.neuron = tmp_neuron;
                     batch_i.shifts = [];  % shifts allowed
                     file_id_(k_batch) = m;
@@ -332,7 +332,7 @@ classdef Sources2D < handle
             dims = mat_data.dims;
             T = dims(3);
             if ~exist('frame_range', 'var') || isempty(frame_range)
-                frame_range = [1, min(T, 3000)];
+                frame_range = [1, min(T, 3000)];  %modified by PV
             end
             T = diff(frame_range)+1;
             if ~exist('method', 'var') || isempty(method)
@@ -1806,7 +1806,7 @@ classdef Sources2D < handle
             if exist('original_logfile', 'var')
                 obj.P.log_file = original_logfile;
             end
-            evalin('caller', sprintf('save(''%s'', ''neuron'', ''save_*'', ''show_*'', ''use_parallel'', ''with_*'', ''-v7.3''); ', file_path)); %% modified by PV
+            evalin('caller', sprintf('save(''%s'', ''neuron'', ''show_*'', ''use_parallel'', ''with_*'', ''-v7.3''); ', file_path)); %% modified by PV
             try
                             log_file = obj.P.log_file;
                 fp = fopen(log_file, 'a');

@@ -11,7 +11,7 @@ end
 
 sparA = full(sqrt(sum(obj.A.^2, 1))./sum(abs(obj.A), 1))';  % sparsity_spatial
 
-sparC = sqrt(sum(obj.C_raw.^2, 2))./sum(abs(obj.C_raw), 2); % sparsity temporal
+sparC = sqrt(sum(obj.S.^2, 2))./sum(abs(obj.S), 2); % sparsity temporal
 
 [circularity,~,cn,Areaest] = get_contoursPV(obj);
 
@@ -25,5 +25,5 @@ M=mean(obj.S,2);
 
 X=[sparA,sparC,circularity,pnr,cn,Areaest,M,taud];
 
-C=num2cell(X,[size(X,1) size(X,2)]);
+C=num2cell(X);
 T = cell2table(C,'VariableNames',{'sparA','sparC','circularity','pnr','cn','Areaest','Mean activity','Tau'});

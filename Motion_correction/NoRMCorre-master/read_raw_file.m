@@ -2,7 +2,7 @@ function A = read_raw_file(filename,framenum,window,FOV,bitsize)
 
 %% Starting from frame number: 'framenum', read 'window'
 fid = fopen(filename);
-imsize = FOV(1)*FOV(2)*bitsize;                                                   % Bit size of single frame
+imsize = FOV(1)*FOV(2)*1;                                                   % Bit size of single frame
 
 current_seek = ftell(fid);
 fseek(fid, 0, 1);

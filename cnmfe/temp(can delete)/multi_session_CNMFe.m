@@ -1,8 +1,4 @@
-function GCs_CNMFe(in,PNR_th,Coor_th,gSig,sf)
-
-%% clear the workspace and select data
-% clear; clc; close all;
-
+function multi_session_CNMFe(in,PNR_th,Coor_th,gSig,sf)
 %% choose data
 neuron = Sources2D();
 if exist('in','var')
@@ -10,16 +6,16 @@ if exist('in','var')
 else
     nam = [];% get_fullname('./data_1p.tif');          % this demo data is very small, here we just use it as an example
 end
-nam = neuron.select_data(nam);  %if nam is [], then select data interactively
+neuron.select_multiple_files({nam});  %if nam is [], then select data interactively
 
 %% parameters
 % -------------------------    COMPUTATION    -------------------------  %
 pars_envs = struct('memory_size_to_use', 256, ...   % GB, memory space you allow to use in MATLAB
     'memory_size_per_patch', 32, ...   % GB, space for loading data within one patch
-    'patch_dims', [64, 64]);  %GB, patch size
+    'patch_dims', [64, 64],'batch_frames', 1);    %GB, patch size
 
 % -------------------------      SPATIAL      -------------------------  %
-          % pixel, gaussian width of a gaussian kernel for filtering the data. usualy 1/3 of neuron diameter
+% pixel, gaussian width of a gaussian kernel for filtering the data. usualy 1/3 of neuron diameter
 gSiz = gSig*3;          % pixel, neuron diameter
 ssub = 1;           % spatial downsampling factor
 with_dendrites = true;   % with dendrites or not
@@ -48,7 +44,7 @@ deconv_options = struct('type', 'ar1', ... % model of the calcium traces. {'ar1'
     'optimize_b', true, ...% optimize the baseline);
     'max_tau', 100);    % maximum decay time (unit: frame);
 
-nk = 1;             % detrending the slow fluctuation. usually 1 is fine (no detrending)
+nk = 3;             % detrending the slow fluctuation. usually 1 is fine (no detrending)
 % when changed, try some integers smaller than total_frame/(Fs*30)
 detrend_method = 'spline';  % compute the local minimum as an estimation of trend.
 
@@ -74,7 +70,7 @@ min_corr = Coor_th;     % minimum local correlation for a seeding pixel
 min_pnr = PNR_th;       % minimum peak-to-noise ratio for a seeding pixel
 min_pixel = (gSig^2)/2;      % minimum number of nonzero pixels for each neuron
 bd = 0;             % number of rows/columns to be ignored in the boundary (mainly for motion corrected data)
-frame_range = [];   % when [], uses all frames
+save_initialization = false;    % save the initialization procedure as a video.
 use_parallel = true;    % use parallel computation for parallel computing
 center_psf = true;  % set the value as true when the background fluctuation is large (usually 1p data)
 % set the value as false when the background fluctuation is small (2p)
@@ -109,78 +105,65 @@ neuron.updateParams('gSig', gSig, ...       % -------- spatial --------
     'bd', bd, ...
     'center_psf', center_psf);
 neuron.Fs = Fs;
-
+[filepath,name]=fileparts(in);
+load([filepath,'\',name,'_frames.mat'],'F');
+neuron.frame_range=F; 
 %% distribute data and be ready to run source extraction
-try
-neuron.getReady(pars_envs);
-catch
-    dum=1
-end
-[neuron.Cn_all,neuron.PNR_all,neuron.Cn,neuron.PNR]=get_PNR_coor_shift_batch(nam,gSig);
+neuron.getReady_batch(pars_envs);
 
-%% initialize neurons from the video data within a selected temporal range
+%% initialize neurons in batch mode
+neuron.initComponents_batch(K, save_initialization, 1);
+%% udpate spatial components for all batches
+neuron.update_spatial_batch(use_parallel);
 
-[center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 0, use_parallel);
-neuron.compactSpatial();
+%% udpate temporal components for all bataches
+neuron.update_temporal_batch(use_parallel);
+%% update background
+neuron.update_background_batch(use_parallel);
+neuron.update_temporal_batch(use_parallel);
+standarize_C_raw(neuron)
+%% get the correlation image and PNR image for all neurons
+neuron.correlation_pnr_batch();
+[neuron.PNR_all,neuron.Cn_all]=create_PNR_batch(neuron);
+%% concatenate temporal components of each batch
+concatenate_shifted_batch(neuron);
+neuron.P=neuron.batches{1, 1}.neuron.P;
+% neuron.frame_range=[1,size(neuron.C_raw,2)];
+justdeconv(neuron,'foopsi','ar1',5);
 
-%% estimate the background components
-neuron.update_background_parallel(use_parallel);
 
-%%  merge neurons and update spatial/temporal components
-neuron.merge_neurons_dist_corr(show_merge);
-neuron.merge_high_corr(show_merge, merge_thr_spatial);
+% neuron=justdeconv(neuron,'foopsi','ar2'); % you can change this to foopsi
+% fix_Baseline(round(40*neuron.Fs),neuron)%% PV this may not be necessary, but can be useful to correct for slow fluctuation in the calcium traces when recordings are very long
+% %sometimes it decrease the amount of false-positives spikes.
+% 
+% 
+% scale_to_noise(neuron,500); %this is to fix the differences in the basline noise level across batches.
+% neuron=justdeconv(neuron,'foopsi','ar2');
 
-%% update spatial components
+neuron.merge_neurons_dist_corr(0);
+neuron.merge_high_corr(0, [0.6, -1, -inf]);
 
-neuron.update_spatial_parallel(use_parallel, true);
 
-% merge neurons based on correlations
-neuron.merge_high_corr(show_merge, merge_thr_spatial);
 
-for m=1:2
-    % update temporal
-    neuron.update_temporal_parallel(use_parallel);
-    
-    % delete bad neurons
-    neuron.remove_false_positives();
-    
-    % merge neurons based on temporal correlation + distances
-    neuron.merge_neurons_dist_corr(show_merge);
-end
-
-%% run more iterations
-neuron.update_background_parallel(use_parallel);
-neuron.update_spatial_parallel(use_parallel);
-neuron.update_temporal_parallel(use_parallel);
-
-K = size(neuron.A,2);
-neuron.tag_neurons_parallel();  % find neurons with fewer nonzero pixels than min_pixel and silent calcium transients
-neuron.remove_false_positives();
-neuron.merge_neurons_dist_corr(show_merge);
-neuron.merge_high_corr(show_merge, merge_thr_spatial);
-
-if K~=size(neuron.A,2)
-    neuron.update_spatial_parallel(use_parallel);
-    neuron.update_temporal_parallel(use_parallel);
-    neuron.remove_false_positives();
-end
-
-%% save the workspace for future analysis
 neuron.orderROIs('snr');
-save_workspace(neuron);
+%% save workspace
+neuron.P.log_folder=strcat(neuron.P.folder_analysis,filesep);
+neuron.P=neuron.batches{1, 1}.neuron.P;
+get_frame_ranges(neuron);
 
-%% show neuron contours
-neuron.show_contours(0.6);
+neuron.save_workspace_batch();  %save batch data
+fclose('all');
+neuron.batches=0;  %kill batch data, it is not necessary to laod it again
 
+neuron.P.log_folder=strcat(neuron.P.folder_analysis,filesep);
+cnmfe_path = neuron.save_workspace();
 
 end
 
 %% USEFULL COMMANDS
-%  fclose('all');
-% justdeconv(neuron,'thresholded','ar2');
 
 %%  To manually inspect spatial and temporal components of each neuron
-%   neuron.orderROIs('pnr');   % order neurons in different ways {'snr', 'decay_time', 'mean', 'circularity','sparsity_spatial','sparsity_temporal','pnr'}
+%   neuron.orderROIs('snr');   % order neurons in different ways {'snr', 'decay_time', 'mean', 'circularity','sparsity_spatial','sparsity_temporal','pnr'}
 %   neuron.viewNeurons([], neuron.C_raw);
 
 %% To save results in a new path run these lines a choose the new folder:
@@ -199,26 +182,11 @@ end
 %   implay(cat(2,mat2gray(neuron.PNR_all),mat2gray(neuron.Cn_all)),5);
 
 %% to visualize all temporal traces
-%   figure;strips(neuron.C_raw');
-%   figure;stackedplot(neuron.C_raw');
-%   view_traces(neuron);
+%   strips(neuron.C_raw');
+%   stackedplot(neuron.C_raw');
 
 %% Manually merge very close neurons
-% neuron.merge_high_corr(1, [0.7, -1, -inf]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+% neuron.merge_high_corr(1, [0.2, -1, -inf]);
 
 
 

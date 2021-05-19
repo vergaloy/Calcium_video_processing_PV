@@ -19,7 +19,7 @@ delete(ppm);
 end
 
 function out=apply_vesselness_filter(in);
-
+in= medfilt2(in);
 Ip = single(in);
 thr = prctile(Ip(Ip(:)>0),1) * 0.9;
 Ip(Ip<=thr) = thr;
