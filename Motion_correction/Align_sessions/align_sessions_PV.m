@@ -1,4 +1,5 @@
-function align_sessions_PV()
+function align_sessions_PV(sf)
+% align_sessions_PV(6);
 
 theFiles = uipickfiles('FilterSpec','*.h5');
 Vid=cell(1,size(theFiles,1));
@@ -37,8 +38,7 @@ if ~isfile(out)
     %% register using filtered data and apply shifts to original data
     tic; [O,shifts,~] = normcorre_batch(Vf(bound/2+1:end-bound/2,bound/2+1:end-bound/2,:),options_r,Vf(bound/2+1:end-bound/2,bound/2+1:end-bound/2,1)); toc % register filtered data
     %% apply shifts
-    Mr=apply_shifts_PV(Vid,shifts);
-    Mr=catpad(3,Mr{:});
+    Mr=apply_shifts_PV(Vid,shifts,sf);
     Mr=Mr-min(Mr,[],'all');
     Mr=Mr./max(Mr,[],'all');
     Mr=uint16(Mr.*(2^16));
@@ -54,10 +54,10 @@ end
 end
 
 
-function out=apply_shifts_PV(Vid,shifts)
+function out=apply_shifts_PV(Vid,shifts,sf)
 fprintf(1, 'Applying shifts to video...\n');
 upd = textprogressbar(size(Vid,2));
-out=cell(1,size(Vid,2));
+out=[];
 k=0;
 for i=1:size(Vid,2)
     temp_shift=squeeze(shifts(i).shifts);
@@ -65,11 +65,13 @@ for i=1:size(Vid,2)
     temp=shift_subpixel(double(temp),temp_shift, 'nan');
     temp = temp(:,:,2:end);
     [d1,d2,d3]=size(temp);    
-    dt = detrend_data(reshape(temp,[d1*d2,d3]),5,'spline');
-    dt=dt-(mean(dt(:,1:50),2)-k);
-    k=mean(dt(:,end-50:end),2);
+    dt = detrend_PV(sf,reshape(temp,[d1*d2,d3]));
+%     
+
+    dt=dt-(prctile(dt(:,1:50),5,2)-k);
+    k=prctile(dt(:,end-50:end),5,2);
     
-    temp=reshape(dt,[d1,d2,d3]);
+%     temp=reshape(dt,[d1,d2,d3]);
     
 %     if i==1
 %      temp=temp+(2^16-max(temp,[],'all'));
@@ -79,9 +81,12 @@ for i=1:size(Vid,2)
 %        temp=temp+k-k2;
 %        k=mean(temp(:,:,end),'all');
 %     end
-    out{i}=temp;
+    out=[out,dt];
     upd(i);
 end
+
+out=reshape(out,d1,d2,[]);
+
 end
 
 

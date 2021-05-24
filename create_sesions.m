@@ -3,10 +3,11 @@ M=size(neuron.Cn,1);
 K=size(neuron.Cn,2);
 session=zeros([M,K,N]);
 
+[circularity,pnr,cn,Areaest,mask]=get_contoursPV(neuron);
 for i=1:N
  t=reshape(neuron.A(:, i),M,K);   
  t=full(t);
- session(:,:,i)=t;
+ session(:,:,i)=mask(:,:,i);
 end
 session = permute(session,[3 1 2]);
 newStr = reverse(neuron.file);

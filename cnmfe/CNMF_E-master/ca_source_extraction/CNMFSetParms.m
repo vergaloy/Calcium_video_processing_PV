@@ -117,7 +117,10 @@ Names = [
     'spatial_algorithm  ' % method for updating spatial components 
     'with_overlap_init  ' % initialize repeat neurons across different patch 
     'save_intermediate  ' % save intermediate results or not 
-    ];
+    'PNR                '                 %PV
+    'Cn                 '                  %PV
+    'Mask               '
+    ];              %PV
 
 [m,n] = size(Names);
 names = lower(Names);
@@ -306,6 +309,9 @@ Values = [
     {'hals'}
     {false}
     {false}
+    {[]}  %PV
+    {[]}  %PV
+    {[]}  %PV
     ];
 
 for j = 1:m

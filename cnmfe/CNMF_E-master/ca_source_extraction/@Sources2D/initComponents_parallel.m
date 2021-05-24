@@ -318,6 +318,11 @@ if use_parallel
         tmp_options.bd = (tmp_patch==tmp_block).*([bd, bd, bd, bd]);
         %                 tmp_options.bd = max([(tmp_patch-tmp_block).*[1, -1, 1, -1]; bd, bd, bd, bd], [], 1);
         
+        % get mask and CnPNR
+        tmp_options.Mask=options.Mask(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
+        tmp_options.PNR=options.PNR(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
+        tmp_options.Cn=options.Cn(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
+        
         % patch dimension
         tmp_options.d1 = diff(tmp_block(1:2))+1;
         tmp_options.d2 = diff(tmp_block(3:4))+1;
@@ -360,12 +365,19 @@ else
         % get the indices corresponding to the selected patch
         tmp_patch = patch_pos{mpatch};
         tmp_block = block_pos{mpatch};
+              
         
         % boundaries pixels to be avoided for detecting seed pixels
         tmp_options = options;
         tmp_options.visible_off = true;
         tmp_options.bd = (tmp_patch==tmp_block).*([bd, bd, bd, bd]);
         %         tmp_options.bd = max([(tmp_patch-tmp_block).*[1, -1, 1, -1]; bd, bd, bd, bd], [], 1);
+        
+        % get mask and CnPNR
+        tmp_options.Mask=options.Mask(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
+        tmp_options.PNR=options.PNR(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
+        tmp_options.Cn=options.Cn(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
+        
         
         % patch dimension
         tmp_options.d1 = diff(tmp_block(1:2))+1;
@@ -392,7 +404,7 @@ else
             Ypatch_dt = detrend_data(Ypatch, nk); % detrend data
             [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope_PV(Ypatch_dt, K, tmp_options, [], tmp_save_avi);
         else
-            [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = ggreedyROI_endoscope_PV(Ypatch_dt, K, tmp_options, [], tmp_save_avi);
+            [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope_PV(Ypatch, K, tmp_options, [], tmp_save_avi);
         end
         
         % put everthing into one struct variable

@@ -56,6 +56,7 @@ classdef Sources2D < handle
         file_id = [];    % file id for each batch.
         PNR_all;% Modification done by PV
         Cn_all; % Modification done by PV
+        Mask  % Modification done by PV
     end
     
     %% methods

@@ -105,7 +105,14 @@ T = size(Y, 2);
 
 HY = reshape(Y, d1,d2,[]);
 
+if ~isempty(options.Cn)
+Cn=options.Cn;
+PNR=options.PNR;
+else
 [~,~,Cn,PNR]=get_PNR_coor_greedy_PV(HY,gSig);
+end
+
+
 Cn0=Cn;
 PNR0=PNR; 
 %%
@@ -137,6 +144,12 @@ Ysig = GetSn(HY);
 % screen seeding pixels as center of the neuron
 v_search = Cn.*PNR;
 v_search(or(Cn<min_corr, PNR<min_pnr)) = 0;
+
+if ~isempty(options.Mask)
+Mask=options.Mask;
+v_search(~Mask)=0;
+end
+
 ind_search = false(d1*d2,1);  % showing whether this pixel has been searched before
 ind_search(v_search==0) = true; % ignore pixels with small correlations or low peak-noise-ratio
 

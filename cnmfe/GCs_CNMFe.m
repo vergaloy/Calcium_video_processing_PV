@@ -66,7 +66,7 @@ show_merge = false;  % if true, manually verify the merging step
 merge_thr = 0.65;     % thresholds for merging neurons; [spatial overlap ratio, temporal correlation of calcium traces, spike correlation]
 method_dist = 'max';   % method for computing neuron distances {'mean', 'max'}
 dmin = 5;       % minimum distances between two neurons. it is used together with merge_thr
-merge_thr_spatial = [0.8, 0.4, -inf];  % merge components with highly correlated spatial shapes (corr=0.8) and small temporal correlations (corr=0.1)
+merge_thr_spatial = [0.8, 0.1, -inf];  % merge components with highly correlated spatial shapes (corr=0.8) and small temporal correlations (corr=0.1)
 
 % -------------------------  INITIALIZATION   -------------------------  %
 K = [];             % maximum number of neurons per patch. when K=[], take as many as possible.
@@ -111,16 +111,32 @@ neuron.updateParams('gSig', gSig, ...       % -------- spatial --------
 neuron.Fs = Fs;
 
 %% distribute data and be ready to run source extraction
-try
-neuron.getReady(pars_envs);
-catch
-    dum=1
-end
+
+[filepath,name,ext] = fileparts(in);
+CnPNR=strcat(filepath,'\',name,'_CnPNR.mat');
+%% load correlation image
+if exist(CnPNR, 'file')>0
+ m=load(CnPNR);
+neuron.Cn_all=m.Cn_all;neuron.PNR_all=m.PNR_all;neuron.Cn=m.Cn;neuron.PNR=m.PNR;
+else    
 [neuron.Cn_all,neuron.PNR_all,neuron.Cn,neuron.PNR]=get_PNR_coor_shift_batch(nam,gSig);
+end
+neuron.options.Cn=neuron.Cn;neuron.options.PNR=neuron.PNR;
+
+%% load Mask
+Mask=strcat(filepath,'\',name,'_mask.mat');
+if exist(Mask, 'file')>0
+ m=load(Mask);
+neuron.Mask=full(m.Mask);
+else    
+neuron.Mask=ones(size(neuron.Cn,1),size(neuron.Cn,1));
+end
+neuron.options.Mask=neuron.Mask;
 
 %% initialize neurons from the video data within a selected temporal range
 
-[center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 0, use_parallel);
+neuron.getReady(pars_envs);
+[center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 0, 1);
 neuron.compactSpatial();
 
 %% estimate the background components
@@ -191,7 +207,7 @@ end
 %   neuron.Coor=[]
 %   neuron.show_contours(0.9, [], neuron.PNR, 0)  %PNR
 %   neuron.show_contours(0.6, [], neuron.Cn, 0)   %CORR
-%   neuron.show_contours(0.6, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
+%   neuron.show_contours(0.7, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
 %% normalized spatial components
 % A=neuron.A;A=full(A./max(A,[],1)); A=reshape(max(A,[],2),[size(neuron.Cn,1),size(neuron.Cn,2)]);
 % neuron.show_contours(0.6, [], A, 0);

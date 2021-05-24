@@ -25,7 +25,7 @@ sig = 3;    % thresholding noise by sig*std()
 if ~ismatrix(Y); Y = reshape(Y, d1*d2, []); end;  % convert the 3D movie to a matrix
 Y(isnan(Y)) = 0;    % remove nan values
 Y = double(Y);
-Y = detrend_data(Y, 2, 'spline');
+% Y = detrend_data(Y, 2, 'spline'); Dont detrend!!
 
 %% preprocessing data
 % create a spatial filter for removing background

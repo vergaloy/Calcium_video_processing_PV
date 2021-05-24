@@ -1,0 +1,7 @@
+function out=crop_borders()
+[file,path] = uigetfile('*.mat');
+m=load(strcat(path,file));
+[filepath,name]=fileparts(strcat(path,file));
+out=strcat(filepath,'\',name,'_mask','.h5');
+Crop_video_app(m,out,in);
+end
