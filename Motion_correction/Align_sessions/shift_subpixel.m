@@ -172,12 +172,12 @@ if int == shiftsize
     idx = cell(1,dims);     %cell vector for the index order after shift
     switch padval
         case {'circular','numeric'}
-            for k = 1:dims
+            parfor k = 1:dims
                 m = s(k);
                 idx{k} = mod((1:m)-shiftsize(k)-1,m)+1;
             end
         case 'replicate'
-            for k = 1:dims
+            parfor k = 1:dims
                 m = s(k);
                 ix = (1:m)-shiftsize(k);
                 ix(ix<1) = 1;
@@ -185,7 +185,7 @@ if int == shiftsize
                 idx{k} = ix;
             end
         case 'symmetric'
-            for k = 1:dims
+            parfor k = 1:dims
                 m = s(k);
                 ix = (1:m)-shiftsize(k);
                 ix(ix<1) = 1-ix(ix<1);
@@ -199,7 +199,7 @@ if int == shiftsize
     
     %In the case of a numeric value of padval, replace the wrapped elements:
     if strcmp(padval,'numeric')
-        for k = 1:dims      %replace elements along the k-th dimension
+       for k = 1:dims      %replace elements along the k-th dimension
             pidx = idx0;    %cell vector for the indices of the elements
             %to be replaced with pval
             m = s(k);
@@ -226,40 +226,41 @@ else
             + f * int1Dshift(B,d,shi+1);
     end
 end
+ %PV
 
 %% Subfunction for integer 1D shift
-    function outarray = int1Dshift(inarray, dim, sh)
-        n = s(dim);
-        ind = idx0;                 %cell vector for the index order after shift
-        switch padval
-            case {'circular','numeric'}
-                ind{dim} = mod((1:n)-sh-1,n)+1;
-            case 'replicate'
-                inx = (1:n)-sh;
-                inx(inx<1) = 1;
-                inx(inx>n) = n;
-                ind{dim} = inx;
-            case 'symmetric'
-                inx = (1:n)-sh;
-                inx(inx<1) = 1-inx(inx<1);
-                inx(inx>n) = 2*n+1-inx(inx>n);
-                ind{dim} = inx;
-            otherwise
-                error(['''',padval,''' is not a valid choice for PADVAL'])
-        end
-        outarray = inarray(ind{:}); %perform shift by indexing into the input array
-        %In case of numeric value of padval, replace the wrapped elements:
-        if strcmp(padval,'numeric')
-            pind = idx0;            %cell vector for the indices of the elements
-            %to be replaced with pval
-            if sh > 0               %positive shift -> replace first sh elements
-                pind{dim} = 1:sh;
-                outarray(pind{:}) = pval;
-            elseif sh < 0           %negative shift -> replace last sh elements
-                pind{dim} = n+sh+1:n;
-                outarray(pind{:}) = pval;
-            else                    %no shift -> no replacement
-            end
-        end
-    end                         %end of the subfunction int1Dshift
+function outarray = int1Dshift(inarray, dim, sh)
+n = s(dim);
+ind = idx0;                 %cell vector for the index order after shift
+switch padval
+    case {'circular','numeric'}
+        ind{dim} = mod((1:n)-sh-1,n)+1;
+    case 'replicate'
+        inx = (1:n)-sh;
+        inx(inx<1) = 1;
+        inx(inx>n) = n;
+        ind{dim} = inx;
+    case 'symmetric'
+        inx = (1:n)-sh;
+        inx(inx<1) = 1-inx(inx<1);
+        inx(inx>n) = 2*n+1-inx(inx>n);
+        ind{dim} = inx;
+    otherwise
+        error(['''',padval,''' is not a valid choice for PADVAL'])
 end
+outarray = inarray(ind{:}); %perform shift by indexing into the input array
+%In case of numeric value of padval, replace the wrapped elements:
+if strcmp(padval,'numeric')
+    pind = idx0;            %cell vector for the indices of the elements
+    %to be replaced with pval
+    if sh > 0               %positive shift -> replace first sh elements
+        pind{dim} = 1:sh;
+        outarray(pind{:}) = pval;
+    elseif sh < 0           %negative shift -> replace last sh elements
+        pind{dim} = n+sh+1:n;
+        outarray(pind{:}) = pval;
+    else                    %no shift -> no replacement
+    end
+end
+end                         %end of the subfunction int1Dshift
+end 

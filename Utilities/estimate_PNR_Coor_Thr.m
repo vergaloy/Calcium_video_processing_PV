@@ -6,7 +6,7 @@ Gsig=4;
 end
 
 if ~exist('min_corr','var')
-min_corr=0.7;
+min_corr=0.8;
 end
 
 if ~exist('min_pnr','var')
@@ -14,15 +14,26 @@ min_pnr=7;
 end
 
 if ~exist('inF','var');
-[file,path] = uigetfile('*.mat');
+warning('..._CnPNR.mat file does not exist!')
+warning('Run ''get_CnPNR_from_video(gSig)'' ')
+return
 else
 [path,file]=fileparts(inF); 
-file=['\',file,'_CnPNR.mat'];
+file2=['\',file,'_CnPNR.mat'];
 end
-m=load(strcat(path,file),'Cn','PNR');
+m=load(strcat(path,file2),'Cn','PNR');
+
+Mask_path=strcat(path,'\',file,'_mask.mat');
+if exist(Mask_path, 'file')>0
+    l=load(Mask_path);
+    mask=full(l.Mask);
+else
+    mask=ones(size(m.Cn,1),size(m.Cn,2));
+end
 
 
-estimate_Corr_PNR(m.Cn,m.PNR,Gsig,min_corr,min_pnr);
+
+estimate_Corr_PNR(m.Cn,m.PNR,Gsig,min_corr,min_pnr,mask);
 
 
 

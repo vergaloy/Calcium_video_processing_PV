@@ -10,11 +10,13 @@ classdef Sources2D < handle
     properties
         % spatial
         A;          % spatial components of neurons
+        A_del;      %PV
         A_prev;     % previous estimation of A
         % temporal
         C;          % temporal components of neurons
         C_prev;     % previous estimation of C
         C_raw;      % raw traces of temporal components
+        C_del;         %PV
         S;          % spike counts
         kernel;     % calcium dynamics. this one is less used these days.
         % background
@@ -753,10 +755,12 @@ classdef Sources2D < handle
             if isempty(ids)
                 fprintf('all components are good \n');
             else
-                if show_delete
+                if show_delete                    
                     obj.viewNeurons(ids, obj.C_raw);
                 else
-                    obj.delete(ids);
+                    obj.C_del=obj.C_raw(ids,:);   %PV
+                    obj.A_del=obj.A(ids,:);     %PV
+                    obj.delete(ids);                    
                 end
             end
         end
@@ -1989,7 +1993,7 @@ classdef Sources2D < handle
             end
             figure('papersize', [obj.options.d2, obj.options.d1]/40);
             init_fig;
-            plot_contours(obj.A(:, ind), img, thr,with_label, [], obj.Coor(ind), 2);
+            plot_contours(obj.A(:, ind), img, thr,with_label, [], obj.Coor(ind), 1);
             colormap parula;
             caxis([prctile(img(:),2) prctile(img(:),99)]);
             try

@@ -5,8 +5,16 @@ le=round(linspace(1,si(3),round(si(3)/1000)+1));
 cn_all=zeros(si(1),si(2),size(le,2)-1);
 pnr_all=zeros(si(1),si(2),size(le,2)-1);
 
+
+Y_A=cell(size(le,2)-1,1);
 for i=1:size(le,2)-1
-    [cn_all(:,:,i),pnr_all(:,:,i)] = correlation_image_endoscope_PV2(Y(:,:,le(i):le(i+1)),Gsig);
+Y_A{i}=Y(:,:,le(i):le(i+1));
+end
+
+clear Y;
+
+parfor i=1:size(Y_A,1)
+    [cn_all(:,:,i),pnr_all(:,:,i)] = correlation_image_endoscope_PV2(Y_A{i},Gsig);
 end
 
 cn=max(cn_all,[],3);

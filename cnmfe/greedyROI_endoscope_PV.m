@@ -291,8 +291,8 @@ while searching_flag && K>0
         %         if (k>=1) && any(corr(Cin(1:k, :)', y0')>0.9) %already found similar temporal traces
         %             continue;
         %         end
-        if max(diff(y0))< 3*y0_std % signal is weak
-            continue;
+        if max(diff(y0))< 3*y0_std % signal is weak  %% PV include weak signals
+%             continue;
         end
         
         % select its neighbours for estimation of ai and ci, the box size is
@@ -373,7 +373,7 @@ while searching_flag && K>0
             center(k, :) = [r, c];
             
             % avoid searching nearby pixels
-            ind_search(ind_nhood(ai>max(ai)*0.5)) = true;
+            ind_search(ind_nhood(ai>max(ai)*0.5)) = true;   
             
             % update the raw data
             Y(ind_nhood, :) = Y_box - ai*ci;
@@ -383,6 +383,8 @@ while searching_flag && K>0
             else
                 Hai = imfilter(reshape(Ain(ind_nhood_HY, k), nr2, nc2), psf, 'replicate');
             end
+            Hai(Hai<0)=0; %% added by PV
+            
             HY_box = HY(ind_nhood_HY, :) - Hai(:)*ci;
             %             HY_box = bsxfun(@minus, HY_box, median(HY_box, 2));
             HY(ind_nhood_HY, :) = HY_box;
@@ -391,7 +393,9 @@ while searching_flag && K>0
             Ysig_box = Ysig(ind_nhood_HY);
             temp = max(HY_box, [], 2);
             tmp_PNR = temp./Ysig_box;
-            tmp_PNR(or(isnan(tmp_PNR), tmp_PNR<min_pnr)) = 0;
+%             tmp_PNR(or(isnan(tmp_PNR), tmp_PNR<min_pnr)) = 0;   %
+%             modiefied by PV
+            tmp_PNR(isnan(tmp_PNR))=0;  % add PV
             PNR(ind_nhood_HY) = tmp_PNR;
             
             HY_box_thr = HY_box;  %thresholded version of HY
@@ -399,7 +403,8 @@ while searching_flag && K>0
             
             % update correlation image
             tmp_Cn = correlation_image(HY_box_thr, [1,2], nr2, nc2);
-            tmp_Cn(or(isnan(tmp_Cn), tmp_Cn<min_corr)) = 0;
+%          tmp_Cn(or(isnan(tmp_Cn), tmp_Cn<min_corr)) = 0;   modified by PV
+            tmp_Cn(isnan(tmp_PNR))=0;   %added by PV
             Cn(ind_nhood_HY) = tmp_Cn;
             
             % update search value

@@ -307,7 +307,17 @@ default_kernel = obj.kernel;
 
 results = cell(nr_patch*nc_patch, 1);
 if use_parallel
-    parfor mpatch=1:(nr_patch*nc_patch) % add parfor PV
+    
+    [userview,~] = memory;
+    Allmem=(userview.MemAvailableAllArrays-userview.MemUsedMATLAB)/(prod(dims(1:2)+2)*dims(3)/(2^27)*10^9);
+    if feature('numcores')>Allmem
+        Co=ceil(Allmem)-1;
+    else
+        Co=feature('numcores');
+    end
+    delete(gcp('nocreate'));
+    parpool(Co);
+    parfor mpatch=1:(nr_patch*nc_patch) %
         % get the indices corresponding to the selected patch
         tmp_patch = patch_pos{mpatch};
         tmp_block = block_pos{mpatch};
@@ -365,7 +375,7 @@ else
         % get the indices corresponding to the selected patch
         tmp_patch = patch_pos{mpatch};
         tmp_block = block_pos{mpatch};
-              
+        
         
         % boundaries pixels to be avoided for detecting seed pixels
         tmp_options = options;
@@ -405,6 +415,7 @@ else
             [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope_PV(Ypatch_dt, K, tmp_options, [], tmp_save_avi);
         else
             [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope_PV(Ypatch, K, tmp_options, [], tmp_save_avi);
+            %             [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope_PV(Ypatch, K, tmp_options, 1, 1);
         end
         
         % put everthing into one struct variable

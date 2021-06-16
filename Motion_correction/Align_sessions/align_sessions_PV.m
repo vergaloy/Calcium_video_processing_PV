@@ -47,7 +47,13 @@ if ~isfile(out)
 %     Ca_video_viewer(V); 
     %% save Aligned video;
     fprintf(1, 'Saving Aligned Video...\n');  
-    saveash5(Mr,out);    
+    saveash5(Mr,out); 
+    
+
+    out2=strcat(filepath,'\',name,'_O','.mat');  
+    save(out2,'O');
+    
+    
 else
 fprintf(1, 'Video file was already aligned...\n');    
 end

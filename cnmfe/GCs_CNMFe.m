@@ -16,13 +16,13 @@ nam = neuron.select_data(nam);  %if nam is [], then select data interactively
 % -------------------------    COMPUTATION    -------------------------  %
 pars_envs = struct('memory_size_to_use', 256, ...   % GB, memory space you allow to use in MATLAB
     'memory_size_per_patch', 32, ...   % GB, space for loading data within one patch
-    'patch_dims', [64, 64]);  %GB, patch size
+    'patch_dims', [64, 64]);  % Patch dimensions
 
 % -------------------------      SPATIAL      -------------------------  %
           % pixel, gaussian width of a gaussian kernel for filtering the data. usualy 1/3 of neuron diameter
 gSiz = gSig*3;          % pixel, neuron diameter
 ssub = 1;           % spatial downsampling factor
-with_dendrites = true;   % with dendrites or not
+with_dendrites = false;   % with dendrites or not
 if with_dendrites
     % determine the search locations by dilating the current neuron shapes
     updateA_search_method = 'dilate';  %#ok<UNRCH>
@@ -66,7 +66,7 @@ show_merge = false;  % if true, manually verify the merging step
 merge_thr = 0.65;     % thresholds for merging neurons; [spatial overlap ratio, temporal correlation of calcium traces, spike correlation]
 method_dist = 'max';   % method for computing neuron distances {'mean', 'max'}
 dmin = 5;       % minimum distances between two neurons. it is used together with merge_thr
-merge_thr_spatial = [0.8, 0.1, -inf];  % merge components with highly correlated spatial shapes (corr=0.8) and small temporal correlations (corr=0.1)
+merge_thr_spatial = [0.6, 0, -inf];  % merge components with highly correlated spatial shapes (corr=0.8) and small temporal correlations (corr=0.1)
 
 % -------------------------  INITIALIZATION   -------------------------  %
 K = [];             % maximum number of neurons per patch. when K=[], take as many as possible.
@@ -129,14 +129,19 @@ if exist(Mask, 'file')>0
  m=load(Mask);
 neuron.Mask=full(m.Mask);
 else    
-neuron.Mask=ones(size(neuron.Cn,1),size(neuron.Cn,1));
+neuron.Mask=ones(size(neuron.Cn,1),size(neuron.Cn,2));
 end
 neuron.options.Mask=neuron.Mask;
 
 %% initialize neurons from the video data within a selected temporal range
 
-neuron.getReady(pars_envs);
+neuron.getReady(pars_envs);   evalin( 'base', 'clearvars -except parin' );
 [center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 0, 1);
+neuron.show_contours(0.7, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
+
+
+
+% [center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 1, 0);
 neuron.compactSpatial();
 
 %% estimate the background components
@@ -158,7 +163,7 @@ for m=1:2
     neuron.update_temporal_parallel(use_parallel);
     
     % delete bad neurons
-    neuron.remove_false_positives();
+     neuron.remove_false_positives();
     
     % merge neurons based on temporal correlation + distances
     neuron.merge_neurons_dist_corr(show_merge);
@@ -170,7 +175,6 @@ neuron.update_spatial_parallel(use_parallel);
 neuron.update_temporal_parallel(use_parallel);
 
 K = size(neuron.A,2);
-neuron.tag_neurons_parallel();  % find neurons with fewer nonzero pixels than min_pixel and silent calcium transients
 neuron.remove_false_positives();
 neuron.merge_neurons_dist_corr(show_merge);
 neuron.merge_high_corr(show_merge, merge_thr_spatial);
@@ -178,16 +182,21 @@ neuron.merge_high_corr(show_merge, merge_thr_spatial);
 if K~=size(neuron.A,2)
     neuron.update_spatial_parallel(use_parallel);
     neuron.update_temporal_parallel(use_parallel);
-    neuron.remove_false_positives();
+%     neuron.remove_false_positives();
 end
 
 %% save the workspace for future analysis
+neuron.Df=GetSn(neuron.C_raw);
+neuron.C_raw=neuron.C_raw./neuron.Df;
+justdeconv(neuron,'foopsi','ar1',5);
+
+
 neuron.orderROIs('snr');
 save_workspace(neuron);
 
 %% show neuron contours
-neuron.show_contours(0.6);
 
+neuron.show_contours(0.9, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
 
 end
 
@@ -206,8 +215,8 @@ end
 %% To visualize neurons contours:
 %   neuron.Coor=[]
 %   neuron.show_contours(0.9, [], neuron.PNR, 0)  %PNR
-%   neuron.show_contours(0.6, [], neuron.Cn, 0)   %CORR
-%   neuron.show_contours(0.7, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
+%   neuron.show_contours(0.9, [], neuron.Cn, 0)   %CORR
+%   neuron.show_contours(0.9, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
 %% normalized spatial components
 % A=neuron.A;A=full(A./max(A,[],1)); A=reshape(max(A,[],2),[size(neuron.Cn,1),size(neuron.Cn,2)]);
 % neuron.show_contours(0.6, [], A, 0);

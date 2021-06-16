@@ -100,7 +100,7 @@ while and(m>=1, m<=length(ind))
     ste=obj.C;
     ste(ste==0)=nan;
     
-    tma=max(prctile(ste,99,2));
+    tma=max(prctile(ste,99.99,2));
     tmi=min(prctile(obj.C_raw,0.01,2));
     ylim([tmi, tma]);
     xlim([t(1), t(end)]);
@@ -190,7 +190,9 @@ else
         try
             fprintf(flog, '\tDeleting manually selected neurons:\n');
         end
-        obj.delete(ind(ind_del));
+        obj.C_del=obj.C_raw(ind(ind_del),:);  %PV
+        obj.A_del=obj.A(ind(ind_del),:);   %PV
+        obj.delete(ind(ind_del)); 
     end
     %     obj.Coor = obj.get_contours(0.9);
     
