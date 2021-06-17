@@ -35,7 +35,7 @@ nFrames = inputMovieIsx.timing.num_samples;
 if isempty(outpath)
     out=strcat(filepath,'\',name,'_ds','.h5');
 else
-    out=strcat(filepath,'\',name,'_ds','.h5');
+    out=strcat(outpath,'\',name,'_ds','.h5');
 end
 
 upd = textprogressbar(nFrames,'updatestep',30);
