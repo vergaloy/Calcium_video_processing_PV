@@ -1,4 +1,4 @@
-function ISXD2h5(inputFilePath,ds_f)
+function ISXD2h5(inputFilePath,ds_f,outpath)
 % ISXD2h5('C:\Users\BigBrain\Desktop\Sakthi_data\test.isxd',4)
 
 
@@ -32,7 +32,11 @@ inputMovieIsx = isx.Movie.read(inputFilePath);
 nFrames = inputMovieIsx.timing.num_samples;
 
 [filepath,name]=fileparts(inputFilePath);
-out=strcat(filepath,'\',name,'_ds','.h5');
+if isempty(outpath)
+    out=strcat(filepath,'\',name,'_ds','.h5');
+else
+    out=strcat(filepath,'\',name,'_ds','.h5');
+end
 
 upd = textprogressbar(nFrames,'updatestep',30);
 for i=1:nFrames

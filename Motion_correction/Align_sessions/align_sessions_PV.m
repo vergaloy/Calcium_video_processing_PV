@@ -1,31 +1,27 @@
-function align_sessions_PV(sf)
-% align_sessions_PV(6);
+function align_sessions_PV(sf,gSig)
+% align_sessions_PV(6,4);
+
+if ~exist('gSig','var')
+    gSig = 4;
+end
 
 theFiles = uipickfiles('FilterSpec','*.h5');
 Vid=cell(1,size(theFiles,1));
 Cn=cell(1,size(theFiles,1));
 
-for i=1:size(theFiles,2)
-    fullFileName = theFiles{i};
-    fprintf(1, 'Now reading %s\n', fullFileName);
-    Mr=h5read(fullFileName,'/Object');
-    Cn{i}=mean(Mr,3);
-        %% detrend data
-%     [d1,d2,d3]=size(Mr);
-
-%     Mr = reshape(Mr,[d1*d2,d3]);
-%     Mr = detrend_data(double(Mr), 5,'spline');
-%     Mr = reshape(Mr,[d1,d2,d3]);
-%     Mr = Mr-min(Mr,[],'all');
-%     Mr = uint16(Mr);
-    Vid{i}=Mr;    
-end
-[filepath,name]=fileparts(fullFileName);
+[filepath,name]=fileparts(theFiles{end});
 out=strcat(filepath,'\',name,'_Aligned','.h5');
-
-
-if ~isfile(out)   
-    fprintf(1, 'Calculating  best alignment...\n');  
+if ~isfile(out)
+     
+    for i=1:size(theFiles,2)
+        fullFileName = theFiles{i};
+        fprintf(1, 'Now reading %s\n', fullFileName);
+        Mr=h5read(fullFileName,'/Object');
+        Cn{i}=mean(Mr,3);
+        Vid{i}=Mr;
+    end
+    
+    fprintf(1, 'Calculating  best alignment...\n');
     X=catpad(3,Cn{:}); %Concatenate data
     %% Filter data
     Vf=vesselness_PV(X);
@@ -42,21 +38,20 @@ if ~isfile(out)
     Mr=Mr-min(Mr,[],'all');
     Mr=Mr./max(Mr,[],'all');
     Mr=uint16(Mr.*(2^16));
-    %% remove black borders
-%     Mr=remove_borders(Mr);
-%     Ca_video_viewer(V); 
-    %% save Aligned video;
-    fprintf(1, 'Saving Aligned Video...\n');  
-    saveash5(Mr,out); 
-    
 
-    out2=strcat(filepath,'\',name,'_O','.mat');  
+    %% save Aligned video;
+    fprintf(1, 'Saving Aligned Video...\n');
+    saveash5(Mr,out);
+    out2=strcat(filepath,'\',name,'_O','.mat');
     save(out2,'O');
     
-    
 else
-fprintf(1, 'Video file was already aligned...\n');    
+    fprintf(1, 'Video file was already aligned...\n');
 end
+[filepath,name]=fileparts(out);
+out_mat=strcat(filepath,'\',name,'.mat');
+get_frame_list(theFiles,out_mat);
+get_CnPNR_from_video(gSig,{out});
 end
 
 
@@ -70,23 +65,23 @@ for i=1:size(Vid,2)
     temp=catpad(3,zeros(size(Vid{i},1),size(Vid{i},2)),Vid{i});
     temp=shift_subpixel(double(temp),temp_shift, 'nan');
     temp = temp(:,:,2:end);
-    [d1,d2,d3]=size(temp);    
+    [d1,d2,d3]=size(temp);
     dt = detrend_PV(sf,reshape(temp,[d1*d2,d3]));
-%     
-
+    %
+    
     dt=dt-(prctile(dt(:,1:50),5,2)-k);
     k=prctile(dt(:,end-50:end),5,2);
     
-%     temp=reshape(dt,[d1,d2,d3]);
+    %     temp=reshape(dt,[d1,d2,d3]);
     
-%     if i==1
-%      temp=temp+(2^16-max(temp,[],'all'));
-%      k=mean(temp(:,:,end),'all');
-%     else
-%        k2=mean(temp(:,:,1),'all');
-%        temp=temp+k-k2;
-%        k=mean(temp(:,:,end),'all');
-%     end
+    %     if i==1
+    %      temp=temp+(2^16-max(temp,[],'all'));
+    %      k=mean(temp(:,:,end),'all');
+    %     else
+    %        k2=mean(temp(:,:,1),'all');
+    %        temp=temp+k-k2;
+    %        k=mean(temp(:,:,end),'all');
+    %     end
     out=[out,dt];
     upd(i);
 end

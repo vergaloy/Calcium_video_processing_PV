@@ -13,7 +13,7 @@ if ~exist('min_pnr','var')
 min_pnr=7;
 end
 
-if ~exist('inF','var')
+if ~exist('inF','var');
 warning('..._CnPNR.mat file does not exist!')
 warning('Run ''get_CnPNR_from_video(gSig)'' ')
 return
@@ -25,13 +25,12 @@ m=load(file2);
 
 
 if ~isfield(m,'Mask')
-    m.Mask=ones(size(m.Cn,1),size(m.Cn,2));
-    save(out,'-struct',m);
+    mask=ones(size(m.Cn,1),size(m.Cn,2));
 end
 
 
 
-estimate_Corr_PNR(m.Cn,m.PNR,Gsig,min_corr,min_pnr,m.Mask);
+estimate_Corr_PNR(m.Cn,m.PNR,Gsig,min_corr,min_pnr,mask);
 
 
 
