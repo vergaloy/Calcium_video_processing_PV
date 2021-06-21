@@ -1,5 +1,5 @@
 function align_sessions_PV(sf,gSig)
-% align_sessions_PV(6,4);
+% sum
 
 if ~exist('gSig','var')
     gSig = 4;

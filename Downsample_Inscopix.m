@@ -1,4 +1,4 @@
-function Decompress_inscopix(outpath,ds_f)
+function Downsample_Inscopix(outpath,ds_f)
 
 if ~exist('outpath','var')
 outpath = [];

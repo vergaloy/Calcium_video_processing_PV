@@ -113,22 +113,27 @@ neuron.Fs = Fs;
 %% Load parameters stored in .mat file
 [filepath,name,ext] = fileparts(in);
 m_data=strcat(filepath,'\',name,'.mat');
-if exist(m_dataR, 'file')
+if exist(m_data, 'file')
     m=load(m_data);
     neuron.Cn_all=m.Cn_all;neuron.PNR_all=m.PNR_all;neuron.Cn=m.Cn;neuron.PNR=m.PNR;
-    
     if isfield(m,'Mask')
         neuron.Mask=full(m.Mask);
     else
         neuron.Mask=ones(size(neuron.Cn,1),size(neuron.Cn,2));
     end
     
+    if isfield(m,'F')
+     neuron.frame_range=m.F;   
+    end
 else
     [neuron.Cn_all,neuron.PNR_all,neuron.Cn,neuron.PNR]=get_PNR_coor_shift_batch(nam,gSig);
     neuron.Mask=ones(size(neuron.Cn,1),size(neuron.Cn,2));
 end
 neuron.options.Cn=neuron.Cn;neuron.options.PNR=neuron.PNR;
 neuron.options.Mask=neuron.Mask;
+
+
+
 %% distribute data and be ready to run source extraction
 neuron.getReady(pars_envs);   
 evalin( 'base', 'clearvars -except parin' );
