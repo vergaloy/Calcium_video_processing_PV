@@ -758,8 +758,6 @@ classdef Sources2D < handle
                 if show_delete                    
                     obj.viewNeurons(ids, obj.C_raw);
                 else
-                    obj.C_del=obj.C_raw(ids,:);   %PV
-                    obj.A_del=obj.A(ids,:);     %PV
                     obj.delete(ids);                    
                 end
             end
@@ -803,6 +801,8 @@ classdef Sources2D < handle
                 fclose(flog);
             end
             
+            obj.A_del=[obj.A_del,obj.A(:, ind)];
+            obj.C_del=[obj.C_del;obj.C(:, ind)];
             obj.A(:, ind) = [];
             obj.C(ind, :) = [];
             if ~isempty(obj.S)
@@ -1995,7 +1995,7 @@ classdef Sources2D < handle
             init_fig;
             plot_contours(obj.A(:, ind), img, thr,with_label, [], obj.Coor(ind), 1);
             colormap parula;
-            caxis([prctile(img(:),2) prctile(img(:),99)]);
+            caxis([prctile(img(:),2) prctile(img(:),95)]);
             try
                 file_path = [obj.P.log_folder,  'contours_neurons', strrep(get_date(), ' ', '_'), '.pdf'];
                 saveas(gcf, file_path);

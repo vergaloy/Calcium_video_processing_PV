@@ -70,7 +70,8 @@ elseif length(sz(:)) == 2
     R = sqrt(cind.^2+rind.^2);
     sz = (R>=dmin) .* (R<dmax);
 end
-
+sz=ones(7); %% PV
+sz(4,4)=0;  %% PV
 %% compute the correlation
 Yconv = imfilter(Y, sz);        % sum over the neighbouring pixels
 MASK = imfilter(ones(d1,d2), sz);   % count the number of neighbouring pixels

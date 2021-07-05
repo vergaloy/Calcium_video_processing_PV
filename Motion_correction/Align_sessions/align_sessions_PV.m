@@ -28,12 +28,19 @@ if ~isfile(out)
     
     %% perform MC;
     [d1,d2,~] = size(Vf);
-    bound=d1/5;
+    bound1=d1/5;
+    bound2=d2/5;
     % exclude boundaries due to high pass filtering effects
-    options_r = NoRMCorreSetParms('d1',d1-bound,'d2',d2-bound,'bin_width',10,'max_shift',[500,500,500],'iter',1,'correct_bidir',false);
+    options_r = NoRMCorreSetParms('d1',d1-bound1,'d2',d2-bound2,'bin_width',10,'max_shift',[500,500,500],'iter',1,'correct_bidir',false);
     %% register using filtered data and apply shifts to original data
-    tic; [O,shifts,~] = normcorre_batch(Vf(bound/2+1:end-bound/2,bound/2+1:end-bound/2,:),options_r,Vf(bound/2+1:end-bound/2,bound/2+1:end-bound/2,1)); toc % register filtered data
+    tic; [O,shifts,~] = normcorre_batch(Vf(bound1/2+1:end-bound1/2,bound2/2+1:end-bound2/2,:),options_r,Vf(bound1/2+1:end-bound1/2,bound2/2+1:end-bound2/2,1)); toc % register filtered data
     %% apply shifts
+    premaxM=estimate_mean_motion_flow(Vf,gSig,1,0);
+    postmaxM=estimate_mean_motion_flow(O,gSig,0,0);
+    fprintf(1, 'Motion estimation before correction: %1.3f\n', premaxM);
+    fprintf(1, 'Motion estimation after correction: %1.3f\n', postmaxM);
+    
+    
     Mr=apply_shifts_PV(Vid,shifts,sf);
     Mr=Mr-min(Mr,[],'all');
     Mr=Mr./max(Mr,[],'all');
@@ -42,8 +49,14 @@ if ~isfile(out)
     %% save Aligned video;
     fprintf(1, 'Saving Aligned Video...\n');
     saveash5(Mr,out);
-    out2=strcat(filepath,'\',name,'_O','.mat');
-    save(out2,'O');
+    out_mat=strcat(filepath,'\',name,'_Aligned.mat');
+    
+    if ~isfile(out_mat)
+        save(out_mat,'O','premaxM','postmaxM');
+    else
+        save(out_mat,'O','premaxM','postmaxM','-append');
+    end
+    
     
 else
     fprintf(1, 'Video file was already aligned...\n');
@@ -68,8 +81,9 @@ for i=1:size(Vid,2)
     [d1,d2,d3]=size(temp);
     dt = detrend_PV(sf,reshape(temp,[d1*d2,d3]));
     %
-    
+
     dt=dt-(prctile(dt(:,1:50),5,2)-k);
+
     k=prctile(dt(:,end-50:end),5,2);
     
     %     temp=reshape(dt,[d1,d2,d3]);

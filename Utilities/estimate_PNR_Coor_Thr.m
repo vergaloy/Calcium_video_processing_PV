@@ -26,7 +26,7 @@ m=load(file2);
 
 if ~isfield(m,'Mask')
     m.Mask=ones(size(m.Cn,1),size(m.Cn,2));
-    save(out,'-struct',m);
+    save(file2,'-struct',m,'-append');
 end
 
 

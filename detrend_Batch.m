@@ -16,6 +16,9 @@ for k=1:length(theFiles)
         Mr=Mr-min(Mr,[],'all');
         Mr=Mr./max(Mr,[],'all');
         Mr=uint16(Mr.*(2^16));
+        for i=1:size(Mr,3)
+        Mr(:,:,i)= medfilt2(Mr(:,:,i));
+        end
         %% save MC video as .h5
         saveash5(Mr,out);
     end
