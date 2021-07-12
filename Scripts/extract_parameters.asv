@@ -23,7 +23,7 @@ sparC = sqrt(sum(obj.S.^2, 2))./sum(abs(obj.S), 2); % sparsity temporal
 
 M=mean(obj.S,2);
 
-X=[sparA,sparC,pnr,circularity,PNR,cn,Areaest,M,taud];
+X=[sparA,sparC,circularity,pnr,cn,Areaest,M,taud];
 
 C=num2cell(X);
-T = cell2table(C,'VariableNames',{'sparA','sparC','Temporal PNR','circularity','Spatial PNR','cn','Areaest','Mean activity','Tau'});
+T = cell2table(C,'VariableNames',{'sparA','sparC','circularity','temporal pnr','cn','Areaest','Mean activity','Tau'});

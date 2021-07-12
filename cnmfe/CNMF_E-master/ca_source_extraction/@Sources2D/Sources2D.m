@@ -802,7 +802,7 @@ classdef Sources2D < handle
             end
             
             obj.A_del=[obj.A_del,obj.A(:, ind)];
-            obj.C_del=[obj.C_del;obj.C(:, ind)];
+            obj.C_del=[obj.C_del;obj.C(ind, :)];
             obj.A(:, ind) = [];
             obj.C(ind, :) = [];
             if ~isempty(obj.S)
@@ -1288,7 +1288,8 @@ classdef Sources2D < handle
             if isempty(obj.frame_range)
                 frame_shift = 0;
             else
-                frame_shift = 1 - obj.frame_range(1);
+%                 frame_shift = 1 - obj.frame_range(1);
+                    frame_shift=0 % PV;
             end
             % frames to be loaded for initialization
             T = diff(frame_range) + 1;
