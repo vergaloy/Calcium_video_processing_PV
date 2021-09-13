@@ -194,8 +194,8 @@ neuron.merge_high_corr(0, [0.8, -inf, -inf]);
 scale_to_noise(neuron);
 
 save_workspace(neuron);
-% cnn_spatial_PV(neuron,1);
-% save_workspace(neuron);
+cnn_spatial_PV(neuron,1);
+save_workspace(neuron);
 neuron.orderROIs('snr');
 
 %% show neuron contours
