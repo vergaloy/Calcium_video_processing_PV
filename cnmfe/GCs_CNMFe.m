@@ -19,10 +19,10 @@ pars_envs = struct('memory_size_to_use', 256, ...   % GB, memory space you allow
     'patch_dims', [64, 64]);  % Patch dimensions
 
 % -------------------------      SPATIAL      -------------------------  %
-          % pixel, gaussian width of a gaussian kernel for filtering the data. usualy 1/3 of neuron diameter
-gSiz = gSig*3;          % pixel, neuron diameter
+% pixel, gaussian width of a gaussian kernel for filtering the data. usualy 1/3 of neuron diameter
+gSiz = gSig*4;          % pixel, neuron diameter
 ssub = 1;           % spatial downsampling factor
-with_dendrites = false;   % with dendrites or not
+with_dendrites = true;   % with dendrites or not
 if with_dendrites
     % determine the search locations by dilating the current neuron shapes
     updateA_search_method = 'dilate';  %#ok<UNRCH>
@@ -34,16 +34,16 @@ else
     updateA_dist = 5;
     updateA_bSiz = neuron.options.dist;
 end
-spatial_constraints = struct('connected', true, 'circular', false);  % you can include following constraints: 'circular'
+spatial_constraints = struct('connected', false, 'circular', false);  % you can include following constraints: 'circular'
 spatial_algorithm = 'hals_thresh';
 
 % -------------------------      TEMPORAL     -------------------------  %
 Fs = sf;             % frame rate
 tsub = 1;           % temporal downsampling factor
-deconv_flag = true;     % run deconvolution or not
-deconv_options = struct('type', 'ar1', ... % model of the calcium traces. {'ar1', 'ar2'}
+deconv_flag = true;     % run deconvolution or not  PV
+deconv_options = struct('type', 'ar2', ... % model of the calcium traces. {'ar1', 'ar2'}
     'method', 'foopsi', ... % method for running deconvolution {'foopsi', 'constrained', 'thresholded'}
-    'smin', -5, ...         % minimum spike size. When the value is negative, the actual threshold is abs(smin)*noise level
+    'smin', -3, ...         % minimum spike size. When the value is negative, the actual threshold is abs(smin)*noise level
     'optimize_pars', true, ...  % optimize AR coefficients
     'optimize_b', true, ...% optimize the baseline);
     'max_tau', 100);    % maximum decay time (unit: frame);
@@ -55,7 +55,7 @@ detrend_method = 'spline';  % compute the local minimum as an estimation of tren
 % -------------------------     BACKGROUND    -------------------------  %
 bg_model = 'ring';  % model of the background {'ring', 'svd'(default), 'nmf'}
 nb = 1;             % number of background sources for each patch (only be used in SVD and NMF model)
-bg_neuron_factor = 1.4;
+bg_neuron_factor = 1.5;
 ring_radius = round(bg_neuron_factor * gSiz);   % when the ring model used, it is the radius of the ring used in the background model.
 %otherwise, it's just the width of the overlapping area
 num_neighbors = []; % number of neighbors for each neuron
@@ -66,19 +66,23 @@ show_merge = false;  % if true, manually verify the merging step
 merge_thr = 0.65;     % thresholds for merging neurons; [spatial overlap ratio, temporal correlation of calcium traces, spike correlation]
 method_dist = 'max';   % method for computing neuron distances {'mean', 'max'}
 dmin = 5;       % minimum distances between two neurons. it is used together with merge_thr
-merge_thr_tempospatial = [0.6, 0.1, -inf];  % merge components with highly correlated spatial shapes (corr=0.8) and small temporal correlations (corr=0.1)
+merge_thr_tempospatial = [0.8, 0.4, -inf];  % merge components with highly correlated spatial shapes (corr=0.8) and small temporal correlations (corr=0.1)
 
 % -------------------------  INITIALIZATION   -------------------------  %
 K = [];             % maximum number of neurons per patch. when K=[], take as many as possible.
 min_corr = Coor_th;     % minimum local correlation for a seeding pixel
 min_pnr = PNR_th;       % minimum peak-to-noise ratio for a seeding pixel
-min_pixel = (gSig^2)/2;      % minimum number of nonzero pixels for each neuron
+min_pixel = gSig^2;      % minimum number of nonzero pixels for each neuron
 bd = 0;             % number of rows/columns to be ignored in the boundary (mainly for motion corrected data)
 frame_range = [];   % when [], uses all frames
 use_parallel = true;    % use parallel computation for parallel computing
 center_psf = true;  % set the value as true when the background fluctuation is large (usually 1p data)
 % set the value as false when the background fluctuation is small (2p)
 
+% % -------------------------  Residual   -------------------------  %
+% min_corr_res = Coor_th;
+% min_pnr_res = PNR_th;
+% seed_method_res = 'auto';  % method for initializing neurons from the residual
 
 % -------------------------    UPDATE ALL    -------------------------  %
 neuron.updateParams('gSig', gSig, ...       % -------- spatial --------
@@ -121,7 +125,11 @@ if exist(m_data, 'file')
     else
         neuron.Mask=ones(size(neuron.Cn,1),size(neuron.Cn,2));
     end
-   
+    
+    if isfield(m,'F')
+        neuron.options.F=m.F;
+    end
+    
 else
     [neuron.Cn_all,neuron.PNR_all,neuron.Cn,neuron.PNR]=get_PNR_coor_shift_batch(nam,gSig);
     neuron.Mask=ones(size(neuron.Cn,1),size(neuron.Cn,2));
@@ -130,80 +138,69 @@ neuron.options.Cn=neuron.Cn;neuron.options.PNR=neuron.PNR;
 neuron.options.Mask=neuron.Mask;
 
 
-
 %% distribute data and be ready to run source extraction
-neuron.getReady(pars_envs);   
+neuron.getReady(pars_envs);
 evalin( 'base', 'clearvars -except parin' );
 
 %% initialize neurons from the video data within a selected temporal range
 
-
 [center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 0, 1);
-neuron.show_contours(0.7, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
 
 % [center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 1, 0);
-neuron.compactSpatial();
+neuron.show_contours(0.7, [], neuron.Cn, 0); %PNR*CORR
 save_workspace(neuron);
-%% estimate the background components
+%% Update components
 neuron.update_background_parallel(use_parallel);
-
-%%  merge neurons and update spatial/temporal components
-neuron.merge_neurons_dist_corr(show_merge);
-neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
-
-%% update spatial components
-
-neuron.update_spatial_parallel(use_parallel, true);
-
-% merge neurons based on correlations
-neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
-
-for i=1:2
-    % update temporal
+for m=1:2
+    neuron.update_spatial_parallel(use_parallel);
     neuron.update_temporal_parallel(use_parallel);
-    
-    % delete bad neurons
-     neuron.remove_false_positives();
-    
-    % merge neurons based on temporal correlation + distances
-    neuron.merge_neurons_dist_corr(show_merge);
+    scale_to_noise(neuron);
 end
-
-%% run more iterations
-neuron.update_background_parallel(use_parallel);
-neuron.update_spatial_parallel(use_parallel);
-neuron.update_temporal_parallel(use_parallel);
-
-K = size(neuron.A,2);
+%% post-process the results automatically
 neuron.remove_false_positives();
 neuron.merge_neurons_dist_corr(show_merge);
 neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
+neuron.merge_high_corr(0, [0.8, -inf, -inf]);
 
-if K~=size(neuron.A,2)
+%% Update components
+% estimate the background components
+neuron.update_background_parallel(use_parallel);
+for m=1:2
     neuron.update_spatial_parallel(use_parallel);
     neuron.update_temporal_parallel(use_parallel);
-    neuron.remove_false_positives();
+    scale_to_noise(neuron);
 end
+%% post-process the results automatically
+neuron.remove_false_positives();
+neuron.merge_neurons_dist_corr(show_merge);
+neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
+neuron.merge_high_corr(0, [0.8, -inf, -inf]);
+
+
+
 %% save the workspace for future analysis
-neuron.Df=GetSn(neuron.C_raw);
-neuron.C_raw=neuron.C_raw./neuron.Df;
-justdeconv(neuron,'foopsi','ar1',5);
 
-neuron.orderROIs('snr');
-
-if exist(m_data, 'file')   
+if exist(m_data, 'file')
     if isfield(m,'F')
-     neuron.frame_range=m.F;   
-    end    
+        neuron.frame_range=m.F;
+    end
 end
 
+%% post-process the results automatically
+neuron.remove_false_positives();
+neuron.merge_neurons_dist_corr(show_merge);
+neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
+neuron.merge_high_corr(0, [0.8, -inf, -inf]);
+scale_to_noise(neuron);
 
 save_workspace(neuron);
+% cnn_spatial_PV(neuron,1);
+% save_workspace(neuron);
+neuron.orderROIs('snr');
 
 %% show neuron contours
-
-neuron.show_contours(0.6, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
-
+neuron.show_contours(0.4, [], neuron.Cn, 0); %PNR*CORR
+fclose('all');
 end
 
 %% USEFULL COMMANDS
@@ -221,7 +218,7 @@ end
 %% To visualize neurons contours:
 %   neuron.Coor=[]
 %   neuron.show_contours(0.9, [], neuron.PNR, 0)  %PNR
-%   neuron.show_contours(0.9, [], neuron.Cn, 0)   %CORR
+%   neuron.show_contours(0.6, [], neuron.Cn,0)   %CORR
 %   neuron.show_contours(0.6, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
 %% normalized spatial components
 % A=neuron.A;A=full(A./max(A,[],1)); A=reshape(max(A,[],2),[size(neuron.Cn,1),size(neuron.Cn,2)]);

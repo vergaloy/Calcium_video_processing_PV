@@ -43,7 +43,7 @@ else
         outfilename = websave(classifier,url);
     end
 
-    net_classifier = importKerasNetwork(classifier,'ClassNames',["rejected","accepted"]);
+    net_classifier = importKerasNetwork(classifier,'Classes',["rejected","accepted"]);
     out = predict(net_classifier,double(A_com));
     value = out(:,2);
     ind = (value >= thr);

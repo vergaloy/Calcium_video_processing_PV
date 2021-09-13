@@ -1,4 +1,4 @@
-function [circularity,pnr,cn,Areaest,mask] = get_contoursPV(obj);
+function [circularity,pnr,cn,Areaest,mask] = get_contoursPV(obj,thr)
 % [circularity,pnr,cn,Areaest] = get_contoursPV(neuron);
 
 
@@ -10,7 +10,7 @@ CN=obj.Cn;
 
 
 num_neuron = size(A,2);
-thr=0.6;
+
 for m=1:num_neuron    
     A_temp = A(:,m);
     [temp,ind] = sort(A_temp(:).^2,'ascend');

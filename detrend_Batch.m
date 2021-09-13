@@ -1,9 +1,13 @@
-function detrend_Batch(sf)
+function detrend_Batch(sf,gSig,theFiles)
+if ~exist('gSig','var')
+    gSig = 3;
+end
 
+if ~exist('theFiles','var')
 theFiles = uipickfiles('FilterSpec','*.h5');
+end
 
 for k=1:length(theFiles)
-    clearvars -except theFiles sf k
     fullFileName = theFiles{k};
     fprintf(1, 'Now reading %s\n', fullFileName);
     % output file:
@@ -20,7 +24,14 @@ for k=1:length(theFiles)
         Mr(:,:,i)= medfilt2(Mr(:,:,i));
         end
         %% save MC video as .h5
+   
         saveash5(Mr,out);
+        [filepath,name]=fileparts(out);
+        out_mat=strcat(filepath,'\',name,'.mat');
+        get_frame_list(theFiles(k),out_mat);
+        get_CnPNR_from_video(gSig,{out},size(V,3));
+        
+       
     end
 end
 
@@ -30,7 +41,7 @@ function out=detrend2(nums,obj)
 [d1,d2,d3]=size(obj);
 obj=double(reshape(obj,[d1*d2,d3]));
 out=detrend_PV(nums,obj);
-
+out=out./GetSn(out);
 out=reshape(out,[d1,d2,d3]);
 end
 

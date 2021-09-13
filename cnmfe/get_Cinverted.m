@@ -24,11 +24,6 @@ parfor k=1:size(C_raw,1)
     tmp_sn = GetSn(ck_raw);
     ck_raw=ck_raw./tmp_sn;
     [ck, ~, tmp_options]= deconvolveCa(ck_raw, deconv_options, 'sn', 1);
-    
-    if sum(abs(ck))==0
-        ck = ck_raw;
-    end
-    
     C{k} = reshape(ck, 1, []);
     C_raw{k} = ck_raw - tmp_options.b;
     

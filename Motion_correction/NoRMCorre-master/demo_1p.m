@@ -36,8 +36,6 @@ else
     ind_nonzero = (psf(:)>=max(psf(:,1)));
     psf = psf-mean(psf(ind_nonzero));
     psf(~ind_nonzero) = 0;   % only use pixels within the center disk
-    %Y = imfilter(Yf,psf,'same');
-    %bound = 2*ceil(gSiz/2);
     Y = imfilter(Yf,psf,'symmetric');
     bound = 0;
 end

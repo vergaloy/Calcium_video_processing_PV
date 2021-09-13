@@ -58,5 +58,5 @@ HY_thr = HY;
 HY_thr(bsxfun(@lt, HY_thr, Ysig*sig)) = 0;
 
 % compute loal correlation
-Cn = correlation_image(HY_thr, [1,2], d1,d2);
+Cn = correlation_image(HY_thr, 8, d1,d2);
 

@@ -1702,7 +1702,8 @@ classdef Sources2D < handle
             % check the number of nonzero pixels
             nz_pixels = full(sum(A_>0, 1));
             tags_ = tags_ + uint16(nz_pixels'<min_pixel);
-            
+            kill = remove_sparse_PV(A_,obj.options.d1,obj.options.d2); %% PV
+            tags_(kill)=1;  %PV
             % check the number of calcium transients after the first frame
             if obj.options.deconv_flag
                 nz_spikes = full(sum(S_(:,2:end)>0, 2));
@@ -2028,7 +2029,6 @@ classdef Sources2D < handle
                 % smooth the image with median filter
                 A_temp = obj.reshape(full(A_(:, m)),2);
                 % find the threshold for detecting nonzero pixels
-                
                 A_temp = A_temp(:);
                 [temp,ind] = sort(A_temp(:).^2,'ascend');
                 temp =  cumsum(temp);

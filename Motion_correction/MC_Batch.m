@@ -1,9 +1,11 @@
-function MC_Batch()
+function MC_Batch(order)
+if ~exist('order','var')
+    order=1;
+end
 
 theFiles = uipickfiles('FilterSpec','*.h5');
 
 for k=1:length(theFiles)  
-    clearvars -except filePattern theFiles k myFolder
     fullFileName = theFiles{k};
     fprintf(1, 'Now reading %s\n', fullFileName);
 % output file:
@@ -13,7 +15,7 @@ for k=1:length(theFiles)
     
     if ~isfile(out)  
     V=h5read(fullFileName,'/Object');
-    [Mr,Vf]=motion_correct_PV(V);
+    [Mr,Vf]=motion_correct_PV(V,order);
     
     M=get_motion(Vf);
     

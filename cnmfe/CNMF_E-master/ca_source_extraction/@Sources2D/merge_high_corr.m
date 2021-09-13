@@ -25,6 +25,9 @@ if isempty(obj.C_raw)
     obj.C_raw = obj.C;
 end
 C_raw_ = obj.C_raw;
+
+% C_=medfilt1(C_raw_,obj.Fs*5,[],2);  %% Added by PV
+
 C_ = obj.C;
 
 if ~exist('show_merge', 'var') || isempty(show_merge)

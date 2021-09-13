@@ -172,6 +172,11 @@ if use_parallel
         tmp_options.visible_off = true;
         tmp_options.bd = bd*([r==1, r==nr_patch, c==1, c==nc_patch]);
         
+                % get mask and CnPNR
+        tmp_options.Mask=options.Mask(tmp_patch(1):tmp_patch(2),tmp_patch(3):tmp_patch(4));  %PV
+        tmp_options.PNR=[];  %PV
+        tmp_options.Cn=[];  %PV
+        
         % patch dimension
         tmp_options.d1 = diff(tmp_patch(1:2))+1;
         tmp_options.d2 = diff(tmp_patch(3:4))+1;
@@ -270,6 +275,11 @@ else
         tmp_options.visible_off = true;
         tmp_options.bd = bd*([r==1, r==nr_patch, c==1, c==nc_patch]);
         
+                % get mask and CnPNR
+        tmp_options.Mask=options.Mask(tmp_patch(1):tmp_patch(2),tmp_patch(3):tmp_patch(4));  %PV
+        tmp_options.PNR=[];  %PV
+        tmp_options.Cn=[];  %PV
+        
         % patch dimension
         tmp_options.d1 = diff(tmp_patch(1:2))+1;
         tmp_options.d2 = diff(tmp_patch(3:4))+1;
@@ -324,11 +334,9 @@ else
             f_svd = f{mpatch};
             b0_svd = b0{mpatch};
             Ypatch = Ypatch - bsxfun(@plus, b_svd*f_svd, b0_svd);
-        end
+        end            
         
-        
-        
-        [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope(Ypatch, K, tmp_options, [], tmp_save_avi);
+        [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope_PV(Ypatch, K, tmp_options, [], tmp_save_avi);
         
         % put everthing into one struct variable
         tmp_results.center = tmp_center;

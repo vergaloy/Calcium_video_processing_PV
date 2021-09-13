@@ -315,9 +315,9 @@ if use_parallel
     else
         Co=feature('numcores');
     end
-    delete(gcp('nocreate'));
-    parpool(Co);
-    parfor mpatch=1:(nr_patch*nc_patch) %
+%     delete(gcp('nocreate'));
+%     parpool(Co);
+    parfor (mpatch=1:(nr_patch*nc_patch),Co) %
         % get the indices corresponding to the selected patch
         tmp_patch = patch_pos{mpatch};
         tmp_block = block_pos{mpatch};
@@ -330,8 +330,8 @@ if use_parallel
         
         % get mask and CnPNR
         tmp_options.Mask=options.Mask(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
-        tmp_options.PNR=options.PNR(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
-        tmp_options.Cn=options.Cn(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
+        tmp_options.PNR=options.PNR(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4),:);  %PV
+        tmp_options.Cn=options.Cn(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4),:);  %PV
         
         % patch dimension
         tmp_options.d1 = diff(tmp_block(1:2))+1;
@@ -385,8 +385,8 @@ else
         
         % get mask and CnPNR
         tmp_options.Mask=options.Mask(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
-        tmp_options.PNR=options.PNR(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
-        tmp_options.Cn=options.Cn(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4));  %PV
+        tmp_options.PNR=options.PNR(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4),:);  %PV
+        tmp_options.Cn=options.Cn(tmp_block(1):tmp_block(2),tmp_block(3):tmp_block(4),:);  %PV
         
         
         % patch dimension
