@@ -294,7 +294,7 @@ fprintf('Done!\n');
 %% upadte b0
 if strcmpi(bg_model, 'ring')
     fprintf('Update the constant baselines for all pixels..\n');
-    obj.b0_new = cell2mat(obj.P.Ymean)-obj.reshape(obj.A*mean(obj.C,2), 2); -obj.reconstruct_b0();
+    obj.b0_new = cell2mat(obj.P.Ymean)-obj.reshape(obj.A*mean(obj.C,2), 2) -obj.reconstruct_b0();
     fprintf('Done!\n');
 end
 

@@ -1,6 +1,6 @@
 function detrend_Batch(sf,gSig,theFiles)
 if ~exist('gSig','var')
-    gSig = 3;
+    gSig = 2.5;
 end
 
 if ~exist('theFiles','var')
@@ -17,11 +17,10 @@ for k=1:length(theFiles)
     if ~isfile(out)
         V=h5read(fullFileName,'/Object');
         Mr=detrend2(sf,V);
-        Mr=Mr-min(Mr,[],'all');
-        Mr=Mr./max(Mr,[],'all');
-        Mr=uint16(Mr.*(2^16));
-        for i=1:size(Mr,3)
-        Mr(:,:,i)= medfilt2(Mr(:,:,i));
+        if isa(V,'uint8')
+            Mr=v2uint8(Mr);
+        else
+            Mr=v2uint16(Mr);
         end
         %% save MC video as .h5
    

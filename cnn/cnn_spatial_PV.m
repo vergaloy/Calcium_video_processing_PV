@@ -10,7 +10,7 @@ load('model_PV.mat');
 
  testpreds = predict(net,A_com);
  
- ix=testpreds(:,1)>0.5;
+ ix=testpreds(:,1)>0.7;
  
  if auto
  delete(neuron,find(ix))

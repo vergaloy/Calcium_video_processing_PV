@@ -1,4 +1,4 @@
-function [M_final,shifts_g,template,options,col_shift] = normcorre_batch(Y,options,template)
+function [M_final,shifts_g,template,options,col_shift] = normcorre_batch(Y,options,template,verb)
 
 % online motion correction through DFT subpixel registration
 % Based on the dftregistration.m function from Manuel Guizar and Jim Fienup
@@ -66,6 +66,9 @@ else % array loaded in memory
     T = sizY(end);
 end
 
+if ~exist('verb','var')
+verb=1;
+end
 nd = length(sizY)-1;                          % determine whether imaging is 2d or 3d
 sizY = sizY(1:nd);
 %% set default parameters if not present
@@ -147,7 +150,9 @@ data_type = class(Y_temp);
 Y_temp = single(Y_temp);
 
 if nargin < 3 || isempty(template)
+    if verb
     fprintf('Registering the first %i frames just to obtain a good template....',init_batch);
+    end
     template_in = median(Y_temp,nd+1)+add_value;
     fftTemp = fftn(template_in);
     for t = 1:size(Y_temp,nd+1);        
@@ -161,7 +166,9 @@ if nargin < 3 || isempty(template)
         template_in = template_in*(t-1)/t + M_temp/t;
     end
     template_in = template_in + add_value;
+    if verb
     fprintf('..done. \n')
+    end
 else
     template_in = single(template + add_value);
 end
@@ -252,7 +259,9 @@ switch lower(options.output_type)
 end   
 
 cnt_buf = 0;
+if verb
 fprintf('Template initialization complete.  Now registering all the frames with new template. \n')
+end
 %%
 
 prevstr = [];
@@ -427,10 +436,11 @@ for it = 1:iter
                 end
         end        
         end
-        
+        if verb
         str=[num2str(t+lY-1), ' out of ', num2str(T), ' frames registered, iteration ', num2str(it), ' out of ', num2str(iter), '..'];
         refreshdisp(str, prevstr, t);
         prevstr=str; 
+        end
         % update template
         if upd_template
             cnt_buf = cnt_buf + 1;

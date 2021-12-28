@@ -3,7 +3,7 @@ if ~exist('order','var')
     order=1;
 end
 VF=vesselness_PV(V,1,3:0.5:6);
-
+% VF=uint8(VF*2^8);
 [d1,d2,~] = size(VF);
 
 m=max([d1,d2]);

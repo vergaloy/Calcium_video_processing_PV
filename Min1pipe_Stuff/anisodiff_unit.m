@@ -30,6 +30,8 @@ function diff_im = anisodiff_unit(im, num_iter, delta_t, kappa, option)
 %   ad = anisodiff2D(s,num_iter,delta_t,kappa,option);
 %   figure, subplot 121, imshow(s,[]), subplot 122, imshow(ad,[])
 %
+% diff_im = anisodiff_unit(1-mat2gray(in), 10, 1/7, 0.0001, 1);
+
 % References: 
 %   P. Perona and J. Malik. 
 %   Scale-Space and Edge Detection Using Anisotropic Diffusion.

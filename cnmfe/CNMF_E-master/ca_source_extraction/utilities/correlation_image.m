@@ -29,7 +29,7 @@ if ~exist('sz', 'var') || isempty(sz)
 end
 
 % center data 
-Y = bsxfun(@minus, double(Y), mean(Y, ndims(Y))); 
+Y = bsxfun(@minus, Y, mean(Y, ndims(Y))); 
 if ~ismatrix(Y)
     [d1, d2, T] = size(Y);
 else

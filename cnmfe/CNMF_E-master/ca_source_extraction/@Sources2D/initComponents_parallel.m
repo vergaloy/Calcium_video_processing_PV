@@ -309,7 +309,7 @@ results = cell(nr_patch*nc_patch, 1);
 if use_parallel
     
     [userview,~] = memory;
-    Allmem=(userview.MemAvailableAllArrays-userview.MemUsedMATLAB)/(prod(dims(1:2)+2)*dims(3)/(2^27)*10^9);
+    Allmem=(userview.MemAvailableAllArrays)/(prod(dims)*2);
     if feature('numcores')>Allmem
         Co=ceil(Allmem)-1;
     else
@@ -352,7 +352,7 @@ if use_parallel
         Ypatch = get_patch_data(mat_data, tmp_patch, frame_range, true);
         temp = mean(Ypatch, 3);
         Ymean{mpatch} = temp((tmp_patch(1):tmp_patch(2))-tmp_block(1)+1, (tmp_patch(3):tmp_patch(4))-tmp_block(3)+1);
-        Ypatch = double(reshape(Ypatch, [], T));
+        Ypatch = single(reshape(Ypatch, [], T)); 
         if nk>1
             Ypatch_dt = detrend_data(Ypatch, nk, detrend_method); % detrend data
             [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope_PV(Ypatch_dt, K, tmp_options, [], tmp_save_avi);

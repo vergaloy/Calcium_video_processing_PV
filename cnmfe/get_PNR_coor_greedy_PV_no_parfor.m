@@ -1,5 +1,18 @@
-function [cn_all,pnr_all,cn,pnr]=get_PNR_coor_greedy_PV_no_parfor(Y,F)
-max_bin=5000;
+function [cn,pnr]=get_PNR_coor_greedy_PV_no_parfor(YH,F,Sn)
+%% reshape data and convert to single
+YH=single(YH);
+[d1,d2,~]=size(YH);
+YH=reshape(YH,d1*d2,[]);
+
+%% calculate PNR for the whole vide
+Y_max = max(YH, [], 2);
+pnr = reshape(double(Y_max)./Sn, d1, d2);
+% pnr = reshape(Y_max, d1, d2);
+YH(bsxfun(@lt, YH, Sn*3)) = 0;
+
+
+
+max_bin=6000;
 F=F';
 le=[];
 for i=1:length(F)
@@ -13,20 +26,11 @@ le=cat(2,le,temp);
 end
 le=[0,cumsum(le)];
 
-si=size(Y);
-cn_all=zeros(si(1),si(2),size(le,2)-1);
-pnr_all=zeros(si(1),si(2),size(le,2)-1);
+cn_all=zeros(d1,d2,size(le,2)-1,'single');
 
-Y_A=cell(size(le,2)-1,1);
+
 for i=1:size(le,2)-1
-Y_A{i}=Y(:,:,le(i)+1:le(i+1));
-end
-
-clear Y;
-
-for i=1:size(Y_A,1)
-    [cn_all(:,:,i),pnr_all(:,:,i)] = correlation_image_endoscope_PV2(Y_A{i},0);
+    cn_all(:,:,i) = correlation_image(YH(:,le(i)+1:le(i+1)), 8, d1,d2);
 end
 
 cn=max(cn_all,[],3);
-pnr=max(pnr_all,[],3);

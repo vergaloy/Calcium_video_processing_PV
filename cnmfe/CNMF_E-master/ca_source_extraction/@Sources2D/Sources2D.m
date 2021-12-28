@@ -1997,7 +1997,6 @@ classdef Sources2D < handle
             init_fig;
             plot_contours(obj.A(:, ind), img, thr,with_label, [], obj.Coor(ind), 1);
             colormap parula;
-            caxis([prctile(img(:),2) prctile(img(:),95)]);
             try
                 file_path = [obj.P.log_folder,  'contours_neurons', strrep(get_date(), ' ', '_'), '.pdf'];
                 saveas(gcf, file_path);

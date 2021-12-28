@@ -1,4 +1,4 @@
-function vesselness = vesselness2D(I, sigmas, spacing, tau, brightondark)
+function vesselness = vesselness2D(I, sigmas, spacing, tau, brightondark,norm)
 % calculates the vesselness probability map (local tubularity) of a 2D
 % input image
 % 
@@ -32,7 +32,7 @@ if nargin<5
 end
 
 I = single(I);
-
+vesselness=zeros(size(I,1),size(I,2));
 for j = 1:length(sigmas)
     
     if verbose
@@ -43,31 +43,18 @@ for j = 1:length(sigmas)
     if brightondark == true
         Lambda2 = -Lambda2;
     end  
-    
-    % proposed filter at current scale
-    Lambda3 = Lambda2;
-    
-    Lambda_rho = Lambda3;
-    Lambda_rho(Lambda3 > 0 & Lambda3 <= tau .* max(Lambda3(:))) = tau .* max(Lambda3(:));
-    Lambda_rho(Lambda3 <= 0) = 0;
-    response = Lambda2.*Lambda2.*(Lambda_rho-Lambda2).* 27 ./ (Lambda2 + Lambda_rho).^3;    
-    
-    response(Lambda2 >= Lambda_rho./2 & Lambda_rho > 0) = 1;    
-    response(Lambda2 <= 0 | Lambda_rho <= 0) = 0;
-    response(~isfinite(response)) = 0;   
-    
-    %max response over multiple scales
-    if(j==1)
-        vesselness = response;
-    else        
-        vesselness = max(vesselness,response);
+    %max response over multiple scales   
+    if norm
+        vesselness=max(cat(3,vesselness,mat2gray(Lambda2)) , [] ,3 );
+    else
+        vesselness=vesselness+Lambda2; %% modified by PV
     end
         
     clear response Lambda2 Lambda3
 end
 
-vesselness = vesselness ./ max(vesselness(:)); % should not be really needed   
-vesselness(vesselness < 1e-2) = 0;
+% vesselness = vesselness ./ max(vesselness(:)); % should not be really needed   
+% vesselness(vesselness < 1e-2) = 0;
 
 function [Lambda1, Lambda2] = imageEigenvalues(I,sigma,spacing,brightondark)
 % calculates the two eigenvalues for each voxel in a volume

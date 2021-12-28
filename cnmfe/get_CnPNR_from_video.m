@@ -16,18 +16,18 @@ for k=1:length(theFiles)
     end
     
     if exist('F','var')
-    [Cn_all,PNR_all,Cn,PNR]=get_PNR_coor_greedy_PV(V,gSig,F);
+    [Cn_all,Cn,PNR]=get_PNR_coor_greedy_PV(V,gSig,F);
     else
-     [Cn_all,PNR_all,Cn,PNR]=get_PNR_coor_greedy_PV(V,gSig);   
+     [Cn_all,Cn,PNR]=get_PNR_coor_greedy_PV(V,gSig);   
     end
     
     [filepath,name]=fileparts(fullFileName);
     out=strcat(filepath,'\',name,'.mat');
     
     if ~isfile(out)
-        save(out,'Cn_all','PNR_all','Cn','PNR');
+        save(out,'Cn_all','Cn','PNR');
     else
-        save(out,'Cn_all','PNR_all','Cn','PNR','-append');
+        save(out,'Cn_all','Cn','PNR','-append');
     end
     
     

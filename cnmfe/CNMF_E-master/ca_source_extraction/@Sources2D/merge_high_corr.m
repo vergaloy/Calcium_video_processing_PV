@@ -56,6 +56,17 @@ temp = bsxfun(@times, A_, 1./sqrt(sum(A_.^2,1)));
 % temp = bsxfun(@times, A_>0, 1./sqrt(sum(A_>0)));
 A_overlap = temp'*temp;
 
+%% PV: This normalize relative to the maximum similarity. 
+%If a small components completly overlap with a big component the
+%similarity will not be 1. This modification solve this issue.
+
+t=sort(A_);
+temp = bsxfun(@times, t, 1./sqrt(sum(t.^2,1)));
+% temp = bsxfun(@times, A_>0, 1./sqrt(sum(A_>0)));
+A_overlap_max = temp'*temp;
+
+A_overlap=A_overlap./A_overlap_max;
+ %%
 S_ = obj.S;
 if isempty(S_) || (size(S_, 1)~=size(obj.C, 1))
     try

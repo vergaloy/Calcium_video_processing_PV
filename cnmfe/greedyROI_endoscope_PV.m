@@ -12,7 +12,7 @@ function [results, center, Cn, PNR, save_avi] = greedyROI_endoscope_PV(Y, K, opt
 %       d1:     number of rows
 %       d2:     number of columns
 %       gSiz:   maximum size of a neuron
-%       nb:     number of background
+%       nb:     number of background 
 %       min_corr: minimum threshold of correlation for segementing neurons
 %   sn:     d X 1 vector, noise level of each pixel
 %   debug_on: options for showing procedure of detecting neurons
@@ -82,7 +82,7 @@ try
 catch
     bd = round(gSiz/2);
 end
-sig = 3;    % thresholding noise by sig*std()
+
 
 % exporting initialization procedures as a video
 if ~exist('save_avi', 'var')||isempty(save_avi)
@@ -102,7 +102,6 @@ end
 
 if ~ismatrix(Y); Y = reshape(Y, d1*d2, []); end;  % convert the 3D movie to a matrix
 Y(isnan(Y)) = 0;    % remove nan values
-Y = double(Y);
 T = size(Y, 2);
 
 if isempty(options.F) % PV
@@ -143,6 +142,7 @@ if size(options.F,1)>1
 else
     HY = bsxfun(@minus, HY, median(HY, 2));
 end
+Sn=GetSn(HY);
 %% Get PNR and CN PV
 if ~isempty(options.Cn)
     Cn=options.Cn;
@@ -308,11 +308,9 @@ while searching_flag && K>0
         
         %% extract ai, ci
         sz = [nr, nc];
-        if options.center_psf
-            [ai, ci_raw, ind_success] =  extract_ac(HY_box, Y_box, ind_ctr, sz, options.spatial_constraints);
-        else
-            [ai, ci_raw, ind_success] =  extract_ac(HY_box, Y_box, ind_ctr, sz, options.spatial_constraints);
-        end
+        
+        [ai, ci_raw, ind_success] =  extract_ac(HY_box, Y_box, ind_ctr, sz, options.spatial_constraints);
+        
         if or(any(isnan(ai)), any(isnan(ci_raw))); ind_success=false; end
         if sum(ai)<=min_pixel; ind_success = false; end
         %         if max(ci_raw)<min_pnr;
@@ -353,11 +351,12 @@ while searching_flag && K>0
                 Hai = imfilter(reshape(Ain(ind_nhood_HY, k), nr2, nc2), psf, 'replicate');
             end
             HY_box = HY(ind_nhood_HY, :) - Hai(:)*ci;
+            Sn_box = Sn(ind_nhood_HY, :);
             HY(ind_nhood_HY, :) = HY_box;
             
             %% Update PNR and Cn
             
-            [~,~,tmp_Cn,tmp_PNR]=get_PNR_coor_greedy_PV_no_parfor(reshape(HY_box,nr2, nc2,[]),options.F);  % add by PV
+            [tmp_Cn,tmp_PNR]=get_PNR_coor_greedy_PV_no_parfor(reshape(HY_box,nr2, nc2,[]),options.F,Sn_box);  % add by PV
             
             PNR(ind_nhood_HY) = tmp_PNR;
             Cn(ind_nhood_HY) = tmp_Cn;

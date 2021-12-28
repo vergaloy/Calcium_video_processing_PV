@@ -24,7 +24,6 @@ sig = 3;    % thresholding noise by sig*std()
 
 if ~ismatrix(Y); Y = reshape(Y, d1*d2, []); end;  % convert the 3D movie to a matrix
 Y(isnan(Y)) = 0;    % remove nan values
-Y = double(Y);
 % Y = detrend_data(Y, 2, 'spline'); Dont detrend!!
 
 %% preprocessing data
@@ -39,24 +38,20 @@ else
 end
 
 % filter the data
-if isempty(psf)
-    % no filtering
-    HY = Y;
-else
-    HY = imfilter(reshape(Y, d1,d2,[]), psf, 'replicate');
+if ~isempty(psf)
+    Y = imfilter(reshape(Y, d1,d2,[]), psf, 'replicate');
 end
 
-HY = reshape(HY, d1*d2, []);
+Y = reshape(Y, d1*d2, []);
 % HY_med = median(HY, 2);
 % HY_max = max(HY, [], 2)-HY_med;    % maximum projection
-HY = bsxfun(@minus, HY, median(HY, 2));
-HY_max = max(HY, [], 2);
-Ysig = GetSn(HY);
-PNR = reshape(HY_max./Ysig, d1, d2);
+Y = bsxfun(@minus, Y, median(Y, 2));
+Y_max = max(Y, [], 2);
+Ysig = GetSn(Y);
+PNR = reshape(double(Y_max)./Ysig, d1, d2);
 
-HY_thr = HY;
-HY_thr(bsxfun(@lt, HY_thr, Ysig*sig)) = 0;
+Y(bsxfun(@lt, Y, Ysig*sig)) = 0;
 
 % compute loal correlation
-Cn = correlation_image(HY_thr, 8, d1,d2);
+Cn = correlation_image(Y, 8, d1,d2);
 

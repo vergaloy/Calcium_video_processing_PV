@@ -13,7 +13,7 @@ function [ai, ci, ind_success, sn] = extract_ac(HY, Y, ind_ctr, sz, spatial_cons
 %% parameters
 nr = sz(1);
 nc = sz(2);
-min_corr = 0.5; %% PV in this case in max linkage
+min_corr = 0.5; %
 min_pixels = 5;
 
 %% find pixels highly correlated with the center
@@ -37,7 +37,7 @@ end
 
 %% extract spatial component
 % estiamte the background level using the boundary
-y_bg = median(Y(tmp_corr(:)<0.3, :), 1); % PV
+y_bg = median(Y(tmp_corr(:)<0.2, :), 1); %
 % y_bg = median(Y(~Ix, :), 1); 
 
 %%%%%%%%%%%%%%%%%%%  WHAT A PITY %%%%%%%%%%%%%%%%%%%%%%

@@ -8,7 +8,7 @@ if ~exist('ds_f','var')
 ds_f = 4;
 end
 
-theFiles = uipickfiles('FilterSpec','*.isxd');
+theFiles = uipickfiles('REFilter','\.isxd$');
 
 for k=1:length(theFiles)  
     fullFileName = theFiles{k};

@@ -41,7 +41,7 @@ spatial_algorithm = 'hals_thresh';
 Fs = sf;             % frame rate
 tsub = 1;           % temporal downsampling factor
 deconv_flag = true;     % run deconvolution or not  PV
-deconv_options = struct('type', 'ar2', ... % model of the calcium traces. {'ar1', 'ar2'}
+deconv_options = struct('type', 'ar1', ... % model of the calcium traces. {'ar1', 'ar2'}
     'method', 'foopsi', ... % method for running deconvolution {'foopsi', 'constrained', 'thresholded'}
     'smin', -3, ...         % minimum spike size. When the value is negative, the actual threshold is abs(smin)*noise level
     'optimize_pars', true, ...  % optimize AR coefficients
@@ -119,7 +119,7 @@ neuron.Fs = Fs;
 m_data=strcat(filepath,'\',name,'.mat');
 if exist(m_data, 'file')
     m=load(m_data);
-    neuron.Cn_all=m.Cn_all;neuron.PNR_all=m.PNR_all;neuron.Cn=m.Cn;neuron.PNR=m.PNR;
+    neuron.Cn=m.Cn;neuron.PNR=m.PNR;
     if isfield(m,'Mask')
         neuron.Mask=full(m.Mask);
     else
@@ -129,10 +129,6 @@ if exist(m_data, 'file')
     if isfield(m,'F')
         neuron.options.F=m.F;
     end
-    
-else
-    [neuron.Cn_all,neuron.PNR_all,neuron.Cn,neuron.PNR]=get_PNR_coor_shift_batch(nam,gSig);
-    neuron.Mask=ones(size(neuron.Cn,1),size(neuron.Cn,2));
 end
 neuron.options.Cn=neuron.Cn;neuron.options.PNR=neuron.PNR;
 neuron.options.Mask=neuron.Mask;
@@ -143,9 +139,9 @@ neuron.getReady(pars_envs);
 evalin( 'base', 'clearvars -except parin' );
 
 %% initialize neurons from the video data within a selected temporal range
-
-[center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 0, 1);
-
+tic
+neuron =initComponents_parallel_PV(neuron,K, frame_range, 0, 1);
+toc
 % [center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 1, 0);
 neuron.show_contours(0.7, [], neuron.Cn, 0); %PNR*CORR
 save_workspace(neuron);
@@ -160,7 +156,7 @@ end
 neuron.remove_false_positives();
 neuron.merge_neurons_dist_corr(show_merge);
 neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
-neuron.merge_high_corr(0, [0.8, -inf, -inf]);
+neuron.merge_high_corr(show_merge, [0.9, -inf, -inf]);
 
 %% Update components
 % estimate the background components
@@ -174,7 +170,7 @@ end
 neuron.remove_false_positives();
 neuron.merge_neurons_dist_corr(show_merge);
 neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
-neuron.merge_high_corr(0, [0.8, -inf, -inf]);
+neuron.merge_high_corr(show_merge, [0.9, -inf, -inf]);
 
 
 
@@ -190,7 +186,7 @@ end
 neuron.remove_false_positives();
 neuron.merge_neurons_dist_corr(show_merge);
 neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
-neuron.merge_high_corr(0, [0.8, -inf, -inf]);
+neuron.merge_high_corr(show_merge, [0.9, -inf, -inf]);
 scale_to_noise(neuron);
 
 save_workspace(neuron);
@@ -218,7 +214,7 @@ end
 %% To visualize neurons contours:
 %   neuron.Coor=[]
 %   neuron.show_contours(0.9, [], neuron.PNR, 0)  %PNR
-%   neuron.show_contours(0.6, [], neuron.Cn,0)   %CORR
+%   neuron.show_contours(0.8, [], neuron.Cn,0)   %CORR
 %   neuron.show_contours(0.6, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
 %% normalized spatial components
 % A=neuron.A;A=full(A./max(A,[],1)); A=reshape(max(A,[],2),[size(neuron.Cn,1),size(neuron.Cn,2)]);
@@ -232,7 +228,8 @@ end
 %   view_traces(neuron);
 
 %% Manually merge very close neurons
-% neuron.merge_high_corr(1, [0.7, -1, -inf]);
+% neuron.merge_high_corr(1, [0.7, 0.3, -inf]);
+% justdeconv(neuron,'foopsi','ar2',-3);
 
 
 

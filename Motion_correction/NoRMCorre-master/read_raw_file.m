@@ -17,8 +17,8 @@ else
 end
 %%
 window = min(window,frame_length);
-A = zeros(FOV(1),FOV(2),window,'single');
-
+A = zeros(FOV(1),FOV(2),round(window),'single');
+A = zeros(FOV(1),FOV(2),3012,'uint16');
 for w = 0:window-1                                                          % For each frame inside the window
     fseek(fid,(framenum-1+w)*imsize,'bof');                                 % Position the file-indicator at the beginning of the frame
     temp = fread(fid,[FOV(1),FOV(2)],bstring,0,'b');                              % Read the frame

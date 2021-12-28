@@ -9,7 +9,9 @@ justdeconv(neuron,'foopsi','ar1',-5);
 
  [outA,value] = cnn_classifier(neuron.A,[neuron.options.d1  neuron.options.d2],'cnn_model.h5',0.05);
 
-[ids,outP,outL]=estimate_false_positives(neuron);
+[ids,outC,outA]=estimate_false_positives(neuron);
+view_traces(neuron,outC);
+
 neuron.viewNeurons(find(ids), neuron.C_raw);
 % neuron.viewNeurons(find(outL), neuron.C_raw);
 
