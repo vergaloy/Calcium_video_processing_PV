@@ -75,7 +75,11 @@ for i = 1:K
         int_z = 1;
     end
     A_temp = reshape(full(A(:,i)),dims);
+    try
     A_temp = A_temp(int_x,int_y,int_z);
+    catch
+        dummy=1
+    end
     if padding
         A_temp = padarray(A_temp,[pad_pre_x,pad_pre_y],0,'pre');
         A_temp = padarray(A_temp,[pad_post_x,pad_post_y],0,'post');

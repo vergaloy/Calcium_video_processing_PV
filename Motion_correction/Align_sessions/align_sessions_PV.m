@@ -89,8 +89,8 @@ for i=1:size(Vid,2)
     temp=reshape(temp,size(temp,1)*size(temp,2),[]);
     temp(~Mask(:),:)=[];
     temp=reshape(temp,f1,f2,[]);
-    M(:,:,i)=min(temp,[],3);
-    Vf(:,:,i)=adapthisteq(vesselness_PV(M(:,:,i),0,0.5:0.05:1.5),'Distribution','exponential');
+    M(:,:,i)=median(temp,3);
+    Vf(:,:,i)=adapthisteq(vesselness_PV(M(:,:,i),0,(0.6:0.032:0.9).*gSig),'Distribution','exponential');
     temp=det_video(temp,sf);
     k=k+1;
     upd(k);
@@ -101,7 +101,7 @@ for i=1:size(Vid,2)
 end
 Vf=mat2gray(Vf);
 M=mat2gray(M);
-X=mat2gray(max(cat(4,Vf,double(Cn)),[],4));
+X=mat2gray(max(cat(4,Vf,double(Cn)*0.5),[],4));
 P={M,Vf,Cn,pnr,X};
 P = array2table(P,'VariableNames',{'Mean','Vessel','Coor','PNR','Vess+Coor'});
 end

@@ -82,7 +82,7 @@ imshow(Cn);drawnow;
 Cn_update(:,:,1)=Cn;
 while true
 
-seed=get_far_neighbors(seed,d1,d2,gSiz*1.5);
+seed=get_far_neighbors(seed,d1,d2,gSiz*1.5,Cn,PNR);
 Mask(seed)=0;
 
 

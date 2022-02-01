@@ -13,8 +13,9 @@ for k=1:length(theFiles)
     out=strcat(filepath,'\',name,'_mc','.h5');
     if ~isfile(out)
         V=h5read(fullFileName,'/Object');
+        [V,~]=motion_correct_PV(V);
         Mr=MC_NR(V);
-        %     [Mr,~]=motion_correct_PV(V,order);
+        %     
         %% save MC video as .h5
         saveash5(Mr,out);
     end

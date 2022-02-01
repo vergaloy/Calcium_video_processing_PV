@@ -32,6 +32,7 @@ end
 %% estimate the noise
 Y(~isfinite(Y))=0; %PV
 Y(isnan(Y))=0;  %PV
+
 [psdx, ff] = pwelch(Y, [],[],[], 1);
 indf = and(ff>=range_ff(1), ff<=range_ff(2));
 switch method

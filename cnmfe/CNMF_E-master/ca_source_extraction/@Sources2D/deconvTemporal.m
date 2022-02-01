@@ -31,7 +31,7 @@ if use_parallel
     ind = randi(K, ceil(K/num_per_row), 1);
     tmp_flag(ind) = true;
     tmp_flag = num2cell(tmp_flag);
-    parfor k=1:size(C_raw_,1)
+    parfor k=1:size(C_raw_,1)  
         ck_raw = C_raw_{k};
         
         if any(isnan(ck_raw))

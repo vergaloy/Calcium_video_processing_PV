@@ -16,13 +16,14 @@ view_traces(neuron,outC);
 neuron.viewNeurons(find(ids), neuron.C_raw);
 % neuron.viewNeurons(find(outL), neuron.C_raw);
 
+ix=cnn_spatial_PV(neuron,0);
  A=full(neuron.A);
  K = size(A,2);  
  dims=[neuron.options.d1  neuron.options.d2];
  A = A/spdiags(sqrt(sum(A.^2,1))'+eps,0,K,K);      % normalize to sum 1 for each compoennt
  A_com = extract_patch(A,dims,[50,50]);  % extract 50 x 50 patches
-  montage(A_com(:,:,:,outA));caxis([0 0.1]);colormap('hot');
-figure; montage(A_com(:,:,:,~outA));caxis([0 0.1]);colormap('hot');
+  montage(A_com(:,:,:,ix));caxis([0 0.2]);colormap('hot');
+figure; montage(A_com);caxis([0 0.1]);colormap('hot');
 
  img=montage(A_com);caxis([0 0.1]);colormap('hot');
 

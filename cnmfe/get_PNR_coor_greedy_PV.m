@@ -36,7 +36,7 @@ else
     Y = bsxfun(@minus, Y, median(Y, 2));
 end
 %% Caculate PNR
-Y_max = max(Y, [], 2);
+Y_max = max(movmedian(Y,10,2), [], 2); %% median prevents outlier 
 Ysig = GetSn(Y);
 pnr = reshape(double(Y_max)./Ysig, d1, d2);
 Y(bsxfun(@lt, Y, Ysig*3)) = 0;

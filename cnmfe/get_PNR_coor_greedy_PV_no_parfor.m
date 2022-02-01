@@ -5,7 +5,7 @@ YH=single(YH);
 YH=reshape(YH,d1*d2,[]);
 
 %% calculate PNR for the whole vide
-Y_max = max(YH, [], 2);
+Y_max = max(movmedian(YH,10,2), [], 2);
 pnr = reshape(double(Y_max)./Sn, d1, d2);
 % pnr = reshape(Y_max, d1, d2);
 YH(bsxfun(@lt, YH, Sn*3)) = 0;

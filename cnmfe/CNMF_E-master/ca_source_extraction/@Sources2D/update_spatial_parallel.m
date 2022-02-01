@@ -345,7 +345,7 @@ end
 fprintf('Post-process spatial components of all neurons...\n');
 obj.A = obj.post_process_spatial(obj.reshape(A_new, 2));
 % obj.A = A_new;
-fprintf('Done!\n');
+
 fprintf('Done!\n');
 
 %% upadte b0

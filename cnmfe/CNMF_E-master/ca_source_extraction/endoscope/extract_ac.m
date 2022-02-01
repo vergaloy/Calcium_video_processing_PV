@@ -13,14 +13,16 @@ function [ai, ci, ind_success, sn] = extract_ac(HY, Y, ind_ctr, sz, spatial_cons
 %% parameters
 nr = sz(1);
 nc = sz(2);
-min_corr = 0.5; %
+min_corr = 0; %
 min_pixels = 5;
 
 %% find pixels highly correlated with the center
 % HY(HY<0) = 0;       % remove some negative signals from nearby neurons
 y0 = HY(ind_ctr, :);
 tmp_corr = reshape(corr(y0', HY'), nr, nc);
-data = HY(tmp_corr>min_corr, :);
+I=tmp_corr>min_corr;
+I=get_central_blob(I,nr,nc,ind_ctr);
+data = HY(I, :);
 % Ix=get_data_PV_method(HY,ind_ctr,min_corr);
 % 
 % data = HY(Ix,:);
@@ -37,7 +39,7 @@ end
 
 %% extract spatial component
 % estiamte the background level using the boundary
-y_bg = median(Y(tmp_corr(:)<0.2, :), 1); %
+y_bg = median(Y(~I, :), 1); %
 % y_bg = median(Y(~Ix, :), 1); 
 
 %%%%%%%%%%%%%%%%%%%  WHAT A PITY %%%%%%%%%%%%%%%%%%%%%%
@@ -110,6 +112,28 @@ else
     ind_success=true;
 end
 
+end
+
+function out=get_central_blob(I,nr,nc,ind_ctr)
+
+% Give each blob a unique ID number (a label).
+labeledImage = bwlabel(I);
+% Get centroids.
+measurements = regionprops(labeledImage, 'Centroid');
+centroids = [measurements.Centroid];
+xCentroids = centroids(1:2:end);
+yCentroids = centroids(2:2:end);
+% Find distances to middle of image
+[rc,cc] = ind2sub([nr,nc],ind_ctr);
+
+distances = sqrt((rc-xCentroids).^2 + (cc-yCentroids).^2);
+% Find the min distance
+[~, indexOfMin] = min(distances);
+% Extract binary image of only the closest blob
+centralBlob = labeledImage == indexOfMin;
+
+se = strel('disk',3);
+out = imdilate(centralBlob,se);
 end
 
 % function out=get_data_PV_method(HY,ind_ctr,min_corr)

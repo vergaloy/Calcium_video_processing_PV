@@ -201,7 +201,7 @@ while m <= n2merge
     obj.C_raw(IDs(1), :) = ci;
     %     [obj.C(IDs(1), :), obj.S(IDs(1), :), tmp_kernel] = deconvCa(ci, obj.kernel, 3, true, false);
     try
-        [obj.C(IDs(1), :), obj.S(IDs(1),:), deconv_options] = deconvolveCa(ci, deconv_options_0);
+        [obj.C(IDs(1), :), obj.S(IDs(1),:), deconv_options] = deconvolveCa(single(ci), deconv_options_0);
         obj.P.kernel_pars(IDs(1), :) = deconv_options.pars(1);  %% PV fix.
         newIDs(IDs(1)) = IDs(1);
         % remove merged elements

@@ -15,4 +15,4 @@ for i=1:size(c,1)
     neuron.C_raw(:,c(i,1):c(i,2))=temp;   % 3) we scale the raw signal. 
 end 
 
-justdeconv(neuron,'foopsi','ar2',-5);
+justdeconv(neuron,neuron.options.deconv_options.method,neuron.options.deconv_options.type,neuron.options.deconv_options.smin);
