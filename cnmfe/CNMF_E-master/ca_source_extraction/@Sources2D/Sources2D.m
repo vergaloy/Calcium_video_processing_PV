@@ -1813,7 +1813,7 @@ classdef Sources2D < handle
             if exist('original_logfile', 'var')
                 obj.P.log_file = original_logfile;
             end
-            evalin('caller', sprintf('save(''%s'', ''neuron'', ''show_*'', ''use_parallel'', ''with_*'', ''-v7.3''); ', file_path)); %% modified by PV
+            evalin('caller', sprintf('save(''%s'', ''max_frame'',''merge_thr_tempospatial'', ''neuron'', ''show_*'', ''use_parallel'', ''with_*'', ''-v7.3''); ', file_path)); %% modified by PV
             try
                             log_file = obj.P.log_file;
                 fp = fopen(log_file, 'a');

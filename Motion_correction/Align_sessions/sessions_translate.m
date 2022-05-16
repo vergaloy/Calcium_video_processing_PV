@@ -4,8 +4,8 @@ Vf=mat2gray(Vf);
 [s1,s2,~] = size(Vf);bound1=s1/5;bound2=s2/5;
 
 options_r = NoRMCorreSetParms('d1',s1-bound1,'init_batch',1,...
-    'd2',s2-bound2,'bin_width',2,'max_shift',[500,500,500],...
-    'iter',1,'correct_bidir',false,'shifts_method','fft','boundary','NaN');
+    'd2',s2-bound2,'bin_width',2,'max_shift',[1000,1000,1000],...
+    'iter',5,'correct_bidir',false,'shifts_method','fft','boundary','NaN');
 
 [~,shifts,~] = normcorre_batch(Vf(bound1/2+1:end-bound1/2,bound2/2+1:end-bound2/2,:),options_r);
 

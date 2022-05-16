@@ -13,3 +13,6 @@ seed = Cn_ind & PNR_ind;
 seed=find(seed);
 [~,I]= sort(v_max(seed));
 seed=seed(I);
+
+
+

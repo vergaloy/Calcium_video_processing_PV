@@ -1,11 +1,11 @@
-function [out,Mask]=remove_borders(in,nanval)
+function [T,Mask]=remove_borders(in,nanval)
 
 
 
 [d1,d2,d3]=size(in);
-T=zeros(d1+2,d2+2,d3)*nan;
+T=zeros(d1+2,d2+2,d3,class(in))*nan;
 T(2:d1+1,2:d2+1,:)=in;
-
+clear in
 if ~exist('nanval','var')
 N=sum(isnan(T),3)>0;
 else
@@ -21,4 +21,4 @@ f2=max(sum(M,2));
 T=reshape(T,(d1+2)*(d2+2),[]);
 M=reshape(M,(d1+2)*(d2+2),1);
 T(~M,:)=[];
-out=reshape(T,f1,f2,[]);
+T=reshape(T,f1,f2,[]);

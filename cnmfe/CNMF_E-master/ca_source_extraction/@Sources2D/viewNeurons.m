@@ -112,6 +112,7 @@ while and(m>=1, m<=length(ind))
         saveas(gcf, sprintf('neuron_%d.png', ind(m)));
         m = m+1;
     else
+        drawnow();
         fprintf('Neuron %d, keep(k, default)/delete(d)/split(s)/trim(t)\n\t/trim cancel(tc)/delete all(da)/backward(b)/end(e):    ', ind(m));
         
         temp = input('', 's');

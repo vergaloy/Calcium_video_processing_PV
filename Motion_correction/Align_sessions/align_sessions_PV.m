@@ -14,6 +14,7 @@ if ~isfile(out)
     %% load all video files
     [Vid,P1,F]=load_data(theFiles,sf,gSig);
     %%
+    P1=adjust_projections(P1);
     fprintf(1, 'Aligning video by translation ...\n');
     [Vid,P2]=apply_translations(Vid,P1);
     %%
@@ -22,13 +23,12 @@ if ~isfile(out)
     P=table(P1,P2,P3,'VariableNames',{'Original','Translations','Trans + Non-Rigid'});
 
     %% Apply Shifts
+    fprintf(1, 'Applying shifts to video...\n');
     Mr=apply_shifts_PV(Vid,shifts);   
-    Mr=remove_borders(Mr);
+    Mr=remove_borders(Mr,1);
     % Convert to original resolution
     if isa(Vid{1},'uint8')
         Mr=v2uint8(Mr);
-    else
-        Mr=v2uint16(Mr);
     end
     
     %% save Aligned video;
@@ -37,6 +37,7 @@ if ~isfile(out)
     out_mat=strcat(filepath,'\',name,'_Aligned.mat');
     Cn=max(P3.Coor{1,1},[],3);
     PNR=max(P3.PNR{1,1},[],3);
+    
     if ~isfile(out_mat)
         save(out_mat,'P','Scor','Cn','PNR','F');
     else
@@ -46,10 +47,10 @@ if ~isfile(out)
 else
     fprintf(1, 'Video file was already aligned...\n');
 end
-% [filepath,name]=fileparts(out);
-% out_mat=strcat(filepath,'\',name,'.mat');
-% % get_frame_list(theFiles,out_mat);
-% % get_CnPNR_from_video(gSig,{out},F);
+% [d1,d2,d3]=size(P.(3)(1,:).(2){1,1});
+% v=reshape(P.(3)(1,:).(2){1,1},d1,d2,1,d3);
+% c=reshape(P.(3)(1,:).(3){1,1},d1,d2,1,d3);
+% V=cat(3,c.*0.6,v,zeros(d1,d2,1,d3));
 
 end
 %%
@@ -99,20 +100,25 @@ for i=1:size(Vid,2)
     k=k+1;
     upd(k);
 end
+Vid=vid2uint16(Vid);
 Vf=mat2gray(Vf);
 M=mat2gray(M);
-X=mat2gray(max(cat(4,Vf,double(Cn)*0.5),[],4));
+X=mat2gray(max(cat(4,Vf,double(Cn).*0.5),[],4));
 P={M,Vf,Cn,pnr,X};
 P = array2table(P,'VariableNames',{'Mean','Vessel','Coor','PNR','Vess+Coor'});
 end
 
 function [Vid,P2]=apply_translations(Vid,P)
 
-    [P2,T,Mask]=sessions_translate(P);
-    Mask=1-Mask;
-    Mask(Mask==1)=nan;
+[P2,T,Mask]=sessions_translate(P);
+[d1,d2,~]=size(Mask);
+f1=max(sum(Mask,1));
+f2=max(sum(Mask,2));
     for i=1:length(Vid)
-          Vid{i}=remove_borders(imtranslate(Vid{i},T(i,:))+Mask);  
+            temp=imtranslate(Vid{i},T(i,:));
+            temp=reshape(temp,d1*d2,[]);
+            temp=temp(Mask,:);
+            Vid{i}=reshape(temp,f1,f2,[]);
     end
     
 end

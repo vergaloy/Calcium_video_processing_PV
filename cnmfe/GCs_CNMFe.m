@@ -17,7 +17,7 @@ nam = neuron.select_data(nam);  %if nam is [], then select data interactively
 pars_envs = struct('memory_size_to_use', 256, ...   % GB, memory space you allow to use in MATLAB
     'memory_size_per_patch', 32, ...   % GB, space for loading data within one patch
     'patch_dims', [64, 64]);  % Patch dimensions
-
+max_frame=30000;
 % -------------------------      SPATIAL      -------------------------  %
 % pixel, gaussian width of a gaussian kernel for filtering the data. usualy 1/3 of neuron diameter
 gSiz = gSig*4;          % pixel, neuron diameter
@@ -34,7 +34,7 @@ else
     updateA_dist = 5;
     updateA_bSiz = neuron.options.dist;
 end
-spatial_constraints = struct('connected', true, 'circular', false);  % you can include following constraints: 'circular'
+spatial_constraints = struct('connected', false, 'circular', false);  % you can include following constraints: 'circular'
 spatial_algorithm = 'hals_thresh';
 
 % -------------------------      TEMPORAL     -------------------------  %
@@ -43,7 +43,7 @@ tsub = 1;           % temporal downsampling factor
 deconv_flag = true;     % run deconvolution or not
 deconv_options = struct('type', 'ar1', ... % model of the calcium traces. {'ar1', 'ar2'}
     'method', 'foopsi', ... % method for running deconvolution {'foopsi', 'constrained', 'thresholded'}
-    'smin', -5, ...         % minimum spike size. When the value is negative, the actual threshold is abs(smin)*noise level
+    'smin', -3, ...         % minimum spike size. When the value is negative, the actual threshold is abs(smin)*noise level
     'optimize_pars', true, ...  % optimize AR coefficients
     'optimize_b', true, ...% optimize the baseline);
     'max_tau', 100);    % maximum decay time (unit: frame);
@@ -141,57 +141,55 @@ evalin( 'base', 'clearvars -except parin' );
 %% initialize neurons from the video data within a selected temporal range
 tic
 neuron =initComponents_parallel_PV(neuron,K, frame_range, 0, 1);
-neuron.compactSpatial();
 toc
 % [center, Cn, PNR] =neuron.initComponents_parallel(K, frame_range, 1, 0);
 neuron.show_contours(0.8, [], neuron.Cn, 0); %PNR*CORR
 save_workspace(neuron);
 
-neuron.merge_neurons_dist_corr(show_merge);
-neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
-neuron.merge_high_corr(show_merge, [0.9, -inf, -inf]);
 
-A_temp=neuron.A;
-C_temp=neuron.C;
 %% Update components
-for loop=1:10
-    % estimate the background components
-    neuron.update_background_parallel(use_parallel);
-    neuron.update_spatial_parallel(use_parallel);
-    neuron.compactSpatial();
-    neuron.update_temporal_parallel(use_parallel);
-    scale_to_noise(neuron);
-    %% post-process the results automatically
-    neuron.remove_false_positives();
-    neuron.merge_neurons_dist_corr(show_merge);
-    neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
-    neuron.merge_high_corr(show_merge, [0.9, -inf, -inf]);
-    dis=dissimilarity_previous(A_temp,neuron.A,C_temp,neuron.C);
+for ite=1:2
     A_temp=neuron.A;
-    C_temp=neuron.C;
-    if dis<0.05
-        break
+    C_temp=neuron.C_raw;
+    for loop=1:10
+        % estimate the background components
+        neuron=update_background_CaliAli(neuron, use_parallel,max_frame);
+        neuron=update_spatial_CaliAli(neuron, use_parallel,max_frame);
+        neuron=update_temporal_CaliAli(neuron, use_parallel,max_frame);
+        %% post-process the results automatically
+        neuron.remove_false_positives();
+        neuron.merge_neurons_dist_corr(show_merge);
+        neuron.merge_high_corr(show_merge, merge_thr_tempospatial);
+        neuron.merge_high_corr(show_merge, [0.9, -inf, -inf]);
+        dis=dissimilarity_previous(A_temp,neuron.A,C_temp,neuron.C_raw);
+        A_temp=neuron.A;
+        C_temp=neuron.C_raw;
+        dis
+        if dis<0.05
+            break
+        end
+    end
+    
+    %% save the workspace for future analysis
+    save_workspace(neuron);
+    
+    %% Pick up from residuals
+    if ite<2
+        neuron=update_residual(neuron);
     end
 end
 
-%% save the workspace for future analysis
 
-if exist(m_data, 'file')
-    if isfield(m,'F')
-        neuron.frame_range=m.F;
-    end
-end
+%% Optional post-process 
+scale_to_noise(neuron);
+neuron.C_raw=detrend_Ca_traces(neuron.Fs/10,neuron.C_raw);
+justdeconv(neuron,'thresholded','ar2',0);
+denoise_thresholded(neuron,0);
 
 
 %% Save results
+neuron.orderROIs('snr');
 save_workspace(neuron);
-%% Optional post-process 
-
-neuron.C_raw=detrend_Ca_traces(neuron.Fs/10,neuron.C_raw);
-justdeconv(neuron,'thresholded','ar2',0);
-denoise_thresholded(neuron,0)
-save_workspace(neuron);
-% neuron.orderROIs('snr');
 
 %% show neuron contours
 neuron.show_contours(0.6, [], neuron.Cn, 0); %PNR*CORR
@@ -212,8 +210,8 @@ end
 %   cnmfe_path = neuron.save_workspace();
 %% To visualize neurons contours:
 %   neuron.Coor=[]
-%   neuron.show_contours(0.9, [], neuron.PNR, 0)  %PNR
-%   neuron.show_contours(0.6, [], neuron.Cn,0)   %CORR
+%   neuron.show_contours(0.9, [], neuron.PNR, 0);  %PNR
+%   neuron.show_contours(0.6, [], neuron.Cn,0);   %CORR
 %   neuron.show_contours(0.6, [], neuron.PNR.*neuron.Cn, 0); %PNR*CORR
 %% normalized spatial components
 % A=neuron.A;A=full(A./max(A,[],1)); A=reshape(max(A,[],2),[size(neuron.Cn,1),size(neuron.Cn,2)]);
@@ -227,7 +225,11 @@ end
 %   view_traces(neuron);
 
 %% Optional post-process
-% neuron.merge_high_corr(1, [0.7, -inf, -inf]);
+% neuron.merge_high_corr(1, [0.5, 0.2, -inf]);
+
+
+% ix=postprocessing_app(neuron)
+%  neuron.viewNeurons(find(ix), neuron.C_raw);
 
 
 

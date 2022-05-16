@@ -1,25 +1,12 @@
-function out=apply_shifts_PV(Vid,shifts,show_bar)
-if ~exist('show_bar','var')
-    show_bar=1;
-end
-
-Six=[];
-for i=1:size(Vid,2)
-    Six=cat(2,Six,ones(1,size(Vid{i},3))*i);
-end
-
-out=cat(3,Vid{:});
-if (show_bar)
-    ppm = ParforProgressbar(size(out,3),'progressBarUpdatePeriod',1.5,'title', 'Applying shifts to video');
-    parfor i=1:size(out,3)
-        out(:,:,i)=imwarp(out(:,:,i),shifts(:,:,:,Six(i)),'FillValues',nan);
-        ppm.increment();
-    end
-    delete(ppm);
-else   
-    parfor i=1:size(out,3)
-        out(:,:,i)=imwarp(out(:,:,i),shifts(:,:,:,Six(i)),'FillValues',nan);
+function out=apply_shifts_PV(Vid,shifts);
+for k=1:size(Vid,2)
+    temp_v=Vid{1,k};
+    temp_s=shifts(:,:,:,k);
+    parfor i=1:size(temp_v,3)
+        temp_v(:,:,i)=imwarp(temp_v(:,:,i),temp_s,'FillValues',1);
     end   
+    Vid{1,k}=temp_v;
 end
+out=cat(3,Vid{:});
 
 end

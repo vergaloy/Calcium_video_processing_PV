@@ -1,4 +1,4 @@
-function out=get_far_neighbors(seed,d1,d2,gSiz,Cn,PNR)
+function [out]=get_far_neighbors(seed,d1,d2,gSiz,Cn,PNR)
 
 di=sqrt(gSiz^2*2);  %% maximum distance between neuron
 %% Get pixel intensity

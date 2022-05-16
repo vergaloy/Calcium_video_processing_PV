@@ -1,0 +1,14 @@
+function out=apply_shifts_PV(Vid,shifts)
+
+
+for k=1:size(Vid,2)
+    temp_v=Vid{1,}
+
+    parfor i=1:size(out,3)
+        out(:,:,i)=imwarp(out(:,:,i),shifts(:,:,:,Six(i)),'FillValues',nan);
+    end   
+end
+
+out=cat(3,Vid{:});
+
+end

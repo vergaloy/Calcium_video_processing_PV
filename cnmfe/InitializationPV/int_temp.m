@@ -77,14 +77,17 @@ A=[];
 C=[];
 C_raw=[];
 S=[];
-seed=get_seeds(Cn,PNR,gSig,neuron.options.min_corr,neuron.options.min_pnr,Mask);
-imshow(Cn);drawnow;
+seed_all=get_seeds(Cn,PNR,gSig,neuron.options.min_corr,neuron.options.min_pnr,Mask);
+imagesc(Cn);drawnow;hold on;
 Cn_update(:,:,1)=Cn;
 while true
+fprintf('%2d seed remaining. \n', length(seed_all));
+seed=get_far_neighbors(seed_all,d1,d2,gSiz*1.5,Cn,PNR);
+[row,col] = ind2sub([d1,d2],seed);
+plot(col,row,'.r');drawnow;
 
-seed=get_far_neighbors(seed,d1,d2,gSiz*1.5,Cn,PNR);
+seed_all(ismember(seed_all,seed))=[];
 Mask(seed)=0;
-
 
 [Y_box,HY_box,ind_nhood,center,sz]=get_mini_videos(Y,HY,seed,d1,d2,gSiz);
 if length(Y_box)==0
@@ -92,21 +95,27 @@ if length(Y_box)==0
 end
 [a,c_raw]=estimate_components(Y_box,HY_box,center,sz,neuron.options.spatial_constraints);
 [c,s]=deconv_PV(c_raw,neuron.options.deconv_options);
-
-[PNR,Cn,HY_box,Y_box]=update_PNR(Y_box,HY_box,a,c,ind_nhood,PNR,Cn,sz,gSig,Sn,F);
-
+%% Filter a
+af=a;
+parfor k=1:size(a,2)
+ temp=imfilter(reshape(a{k}, sz{k}(1),sz{k}(2)), psf, 'replicate');
+ af{1,k}=temp(:);
+end
+ 
 a=expand_A(a,ind_nhood,d1*d2);
+af=expand_A(af,ind_nhood,d1*d2);
+af(af<0)=0;
 
-[Y,HY]=update_video(Y,HY,Y_box,HY_box,ind_nhood);
+%% update video;
+Y=Y-uint16(a*c);
+HY=HY-single(af*c);
+
 A=cat(2,A,a);
 C=cat(1,C,c);
 C_raw=cat(1,C_raw,c_raw);
 S=cat(1,S,s);
-imshow(Cn);drawnow;
-Cn_update=cat(3,Cn_update,Cn);
-%% update seeds
-seed=get_seeds(Cn,PNR,gSig,neuron.options.min_corr,neuron.options.min_pnr,Mask);
-if isempty(seed)
+
+if isempty(seed_all)
     break
 end
 

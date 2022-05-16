@@ -19,19 +19,22 @@ for k=nlevel:-1:1
     
     Fl = imresize(F,scale);
     Ml = imresize(M,scale);
-    
+%     implay(cat(3,Fl,Ml));
     % register
-    [~,~,~,vxl,vyl] = register_in(Fl,Ml,opt);
+    [MP,~,~,vxl,vyl] = register_in(Fl,Ml,opt);
+%     implay(cat(3,Fl,MP));
     % upsample
     vx = imresize(vxl/scale,size(M));
     vy = imresize(vyl/scale,size(M));
     [sx(:,:,:,it),sy(:,:,:,it)] = expfield(vx,vy);
     
-    for i=1:size(F,3)
+    for i=1:size(X1,3)
         X2(:,:,i)     = uint8(imwarp(double(X2(:,:,i)),cat(3,sy(:,:,:,it),sx(:,:,:,it)),'FillValues',nan));
         
 %         uint8(iminterpolate(double(X2(:,:,i)),sx(:,:,:,it),sy(:,:,:,it)));
     end
+%     implay(cat(3,X1(:,:,3) ,X2(:,:,3) ));
+    
 end
 sx=sum(sx,4);
 sy=sum(sy,4);
@@ -41,43 +44,4 @@ D=cat(4,sy,sx);
 
 end
 
-function [vx,vy] = expfield(vx, vy)
-    % Find n, scaling parameter
-    normv2 = vx.^2 + vy.^2;
-    m = sqrt(double(max(normv2(:))));
-    n = ceil(log2(m/0.5)); % n big enough so max(v * 2^-n) < 0.5 pixel)
-    n = max(n,0);          % avoid null values
-    
-    % Scale it (so it's close to 0)
-    vx = vx * 2^-n;
-    vy = vy * 2^-n;
-    % square it n times
-    for i=1:n
-        [vx,vy] = compose(vx,vy, vx,vy);
-    end
-end
 
-function [vx,vy] = compose(ax,ay,bx,by)
-    [x,y] = ndgrid(0:(size(ax,1)-1), 0:(size(ax,2)-1)); % coordinate image
-    x_prime = x + ax; % updated x values
-    y_prime = y + ay; % updated y values
-    
-    % Interpolate vector field b at position brought by vector field a
-    bxp = interpn(x,y,bx,x_prime,y_prime,'linear',0); % interpolated bx values at x+a(x)
-    byp = interpn(x,y,by,x_prime,y_prime,'linear',0); % interpolated bx values at x+a(x)
-    % Compose
-    vx = ax + bxp;
-    vy = ay + byp;
-    
-end
-
-function I = iminterpolate(I,sx,sy)
-    % Find update points on moving image
-    [x,y] = ndgrid(0:(size(I,1)-1), 0:(size(I,2)-1)); % coordinate image
-    x_prime = x + sx; % updated x values (1st dim, rows)
-    y_prime = y + sy; % updated y values (2nd dim, cols)
-    
-    % Interpolate updated image
-    I = interpn(x,y,I,x_prime,y_prime,'linear',0); % moving image intensities at updated points
-    
-end

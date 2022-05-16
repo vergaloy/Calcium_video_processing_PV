@@ -1,4 +1,4 @@
-function [cn_all,cn,pnr]=get_PNR_coor_greedy_PV(Y,gSig,F)
+function [cn_all,cn,pnr]=get_PNR_coor_greedy_PV(Y,gSig,F,Ysig)
 if ~exist('F','var')
     F=size(Y,3);
 end
@@ -26,7 +26,7 @@ end
 
 Y=reshape(Y,d1*d2,[]);
 
-if size(F,1)>1
+if length(F)>1
     t=0;
     for i=1:size(F,1)
         Y(:,t+1:t+F(i)) = Y(:,t+1:t+F(i))-median(Y(:,t+1:t+F(i)),2);
@@ -37,7 +37,11 @@ else
 end
 %% Caculate PNR
 Y_max = max(movmedian(Y,10,2), [], 2); %% median prevents outlier 
-Ysig = GetSn(Y);
+if ~exist('Ysig ','var')
+    Ysig = GetSn(Y);
+end
+
+
 pnr = reshape(double(Y_max)./Ysig, d1, d2);
 Y(bsxfun(@lt, Y, Ysig*3)) = 0;
 

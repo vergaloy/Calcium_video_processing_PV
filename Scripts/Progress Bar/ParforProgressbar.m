@@ -185,6 +185,7 @@ classdef ParforProgressbar < handle
                % worker via udp. receiver is called each time a data
                % package is received with this class object handle to keep
                % track of the progress.
+               warning('off');
                o.connection = udp(o.ServerName, 'DatagramReceivedFcn', {@receiver, o}, 'DatagramTerminateMode', 'on', 'EnablePortSharing', 'on');
                fopen(o.connection);
                

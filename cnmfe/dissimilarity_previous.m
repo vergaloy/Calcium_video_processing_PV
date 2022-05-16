@@ -8,4 +8,5 @@ s=sA.*sC;
 
 ind = sub2ind([size(s,1) size(s,2)],M(:,1),M(:,2));
 
- dis=1-mean([sC(ind);zeros(length(ixz),1)]);
+%  dis=1-mean([sC(ind);zeros(length(ixz),1)]);
+dis=1-mean(sC(ind));

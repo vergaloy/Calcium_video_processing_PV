@@ -4,10 +4,9 @@ cr=neuron.C_raw;
 c=neuron.C;
 s=neuron.S;
 
-if thr_v==0
 t=movmedian(cr,5,2);
-thr=abs(movmin(t,60*sf,2)).*2;
-
+if thr_v==0
+    thr=abs(movmin(t,60*sf,2)).*2;
 else
     thr=ones(1,size(neuron.C,2))*thr_v;
 end
