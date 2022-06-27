@@ -76,8 +76,10 @@ function [Mp,sx,sy,vx,vy] = register_in(F,M,opt)
                 drawnow
             end
         end
+
+%         showgrid  (sx,sy,4,lim)
     end
-    
+        dummy=1;    
     %% Get Best Transformation
     vx = vx_min;  vy = vy_min;
 %     sx = sx_min;  sy = sy_min;
