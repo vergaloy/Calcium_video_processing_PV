@@ -24,7 +24,7 @@ M=zeros(size(Ob,3),size(Ob,3));
 for i=1:size(b,1)
     f1=Ob(:,:,b(i,1));
     f2=Ob(:,:,b(i,2));
-    motion=get_cosine(double(f1(:)),double(f2(:)));
+    motion=get_cosine(double(f1(:)'),double(f2(:))');
     M(b(i,1),b(i,2))=mean(sqrt((real(motion(:)).^2)+(imag(motion(:)).^2)));
 end
 M=M+M'+diag(ones(1,size(M,1)));
