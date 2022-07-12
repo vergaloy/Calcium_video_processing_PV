@@ -53,23 +53,9 @@ W=W./sum(W,3);
 for i=1:size(W,3)
     W(:,:,i) = regionfill(W(:,:,i),isnan(W(:,:,i)));
 end    
+
+
 W=reshape(W,[d1,d2,1,length(elem)]);
 W=cat(3,W,W);
 out=sum(-t_shifts.*W,4,'omitnan');
-for i=1:size(out,3)
-out(:,:,i) = imgaussian(out(:,:,i),opt.sigma_diffusion);
-end
-end
-
-function I = imgaussian(I,sigma)
-    if sigma==0; return; end; % no smoothing
-    
-    % Create Gaussian kernel
-    radius = ceil(3*sigma);
-    [x,y]  = ndgrid(-radius:radius,-radius:radius); % kernel coordinates
-    h      = exp(-(x.^2 + y.^2)/(2*sigma^2));
-    h      = h / sum(h(:));
-    
-    % Filter image
-    I = imfilter(I,h);
 end

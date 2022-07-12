@@ -12,9 +12,9 @@ end
 out=strcat(filepath,'\',name,'_Aligned','.h5');
 if ~isfile(out)
     %% load all video files
-    [Vid,P0,F]=load_data(theFiles,sf,gSig);
+    [Vid,P1,F]=load_data(theFiles,sf,gSig);
     %%
-    P1=adjust_projections(P0);
+    P1=adjust_projections(P1);
     fprintf(1, 'Aligning video by translation ...\n');
     [Vid,P2]=apply_translations(Vid,P1);
     %%
