@@ -1,4 +1,7 @@
 function [X1,X2,D]=MR_Log_demon(X1,X2,opt)
+
+X1=v2uint8(X1);
+X2=v2uint8(X2);
 %% Parameters
 if ~exist('opt','var')
 opt = struct('niter',5, 'sigma_fluid',1,...

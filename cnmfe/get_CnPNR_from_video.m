@@ -20,7 +20,7 @@ for k=1:length(theFiles)
     else
      [Cn_all,Cn,PNR]=get_PNR_coor_greedy_PV(V,gSig);   
     end
-    
+    Cn=mat2gray(Cn);
     [filepath,name]=fileparts(fullFileName);
     out=strcat(filepath,'\',name,'.mat');
     

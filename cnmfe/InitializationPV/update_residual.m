@@ -83,6 +83,7 @@ else
 end
 
 [~,Cn,PNR]=get_PNR_coor_greedy_PV(reshape(HY, d1,d2,[]),0,F,Sn);
+Cn=mat2gray(Cn);
 %%
 if ~isempty(neuron.Mask)
     Mask=neuron.Mask;

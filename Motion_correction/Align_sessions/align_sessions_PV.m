@@ -12,9 +12,9 @@ end
 out=strcat(filepath,'\',name,'_Aligned','.h5');
 if ~isfile(out)
     %% load all video files
-    [Vid,P0,F]=load_data(theFiles,sf,gSig);
+    [Vid,P1,F]=load_data(theFiles,sf,gSig);
     %%
-    P1=adjust_projections(P0);
+%     P1=adjust_projections(P0);
     fprintf(1, 'Aligning video by translation ...\n');
     [Vid,P2]=apply_translations(Vid,P1);
     %%
@@ -103,7 +103,11 @@ end
 Vid=vid2uint16(Vid);
 Vf=mat2gray(Vf);
 M=mat2gray(M);
-X=mat2gray(max(cat(4,Vf,double(Cn).*0.5),[],4));
+Cn=mat2gray(Cn);
+for i=1:size(Vid,2)
+        X(:,:,i)=mat2gray(max(cat(3,Vf(:,:,i),medfilt2(Cn(:,:,i))),[],3));
+end
+
 P={M,Vf,Cn,pnr,X};
 P = array2table(P,'VariableNames',{'Mean','Vessel','Coor','PNR','Vess+Coor'});
 end

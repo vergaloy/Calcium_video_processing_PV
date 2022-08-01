@@ -11,11 +11,6 @@ coefficients = lsqcurvefit(modelfun,beta0 ,double(X),double(Y),zeros(length(X),1
 %
 if plotme
 ls = linspace(min(X), max(X), 1920); % Let's use 1920 points, which will fit across an HDTV screen about one sample per pixel.
-
-% Create smoothed/regressed data using the model:
-% yFitted = coefficients(1) * exp(-(ls - coefficients(2)).^2 / coefficients(3)) + ...
-% 	coefficients(4) * exp(-(ls - coefficients(5)).^2 / coefficients(6));
-
 yFitted = coefficients(1) * exp(-(ls - coefficients(2)).^2 / coefficients(3));
 % Now we're done and we can plot the smooth model as a red line going through the noisy blue markers.
 plot(X,Y);

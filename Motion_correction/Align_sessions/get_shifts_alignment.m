@@ -7,7 +7,7 @@ Shifts=zeros(d1,d2,2,1);
 parfor i=1:d3
     M1=cat(3,X(:,:,i),X(:,:,i),Vf(:,:,i),Vf(:,:,i));
     elem=1:d3;
-    elem(i)=[];
+%     elem(i)=[];
     t_shifts(:,:,:,i)=get_shift_in(M1,Vf,X,elem);
 end
 
@@ -49,16 +49,18 @@ for k=1:length(elem)
     temp(temp<0)=0;
     W(:,:,k)=temp.*M;
 end
+for i=1:size(W,3)
+    W(:,:,i) = imgaussian(W(:,:,i),opt.sigma_diffusion);  % smooth weights.
+end 
+
 W=W./sum(W,3);
 for i=1:size(W,3)
     W(:,:,i) = regionfill(W(:,:,i),isnan(W(:,:,i)));
-end    
+end 
 W=reshape(W,[d1,d2,1,length(elem)]);
 W=cat(3,W,W);
 out=sum(-t_shifts.*W,4,'omitnan');
-for i=1:size(out,3)
-out(:,:,i) = imgaussian(out(:,:,i),opt.sigma_diffusion);
-end
+
 end
 
 function I = imgaussian(I,sigma)
